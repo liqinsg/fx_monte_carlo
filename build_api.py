@@ -66,7 +66,6 @@ def _group_latest(results: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 def _group_by_date(
     results: list[dict[str, Any]],
 ) -> dict[str, dict[str, dict[str, Any]]]:
-    """Return {date_iso: {clean_pair_name: result_dict}}."""
     grouped: dict[str, dict[str, dict[str, Any]]] = {}
     for r in results:
         pair = clean_pair_name(r.get("pair", ""))
@@ -184,10 +183,140 @@ def build_all(
             )
 
 
+def _scan_archive_dirs(api_dir: Path) -> list[str]:
+    """Return sorted list of YYYY/MM/DD strings found under api/YYYY/MM/DD/."""
+    archive: list[str] = []
+    if not api_dir.is_dir():
+        return archive
+    for yyyy_dir in sorted(api_dir.iterdir()):
+        if not yyyy_dir.is_dir() or not yyyy_dir.name.isdigit() or len(yyyy_dir.name) != 4:
+            continue
+        for mm_dir in sorted(yyyy_dir.iterdir()):
+            if not mm_dir.is_dir() or not mm_dir.name.isdigit() or len(mm_dir.name) != 2:
+                continue
+            for dd_dir in sorted(mm_dir.iterdir()):
+                if not dd_dir.is_dir() or not dd_dir.name.isdigit() or len(dd_dir.name) != 2:
+                    continue
+                archive.append(f"{yyyy_dir.name}/{mm_dir.name}/{dd_dir.name}")
+    return sorted(archive, reverse=True)
+
+
+def generate_index(api_dir: Path) -> None:
+    latest_dir = api_dir / "latest"
+
+    pair_files = sorted(
+        [f for f in latest_dir.glob("*.json") if f.name != "all.json"]
+    ) if latest_dir.is_dir() else []
+
+    archive_paths = _scan_archive_dirs(api_dir)
+
+    html_pairs_rows: list[str] = []
+    for file in pair_files:
+        pair = file.stem
+        html_pairs_rows.append(
+            f"""
+<tr>
+  <td>{pair}</td>
+  <td><a href="api/latest/{pair}.json">api/latest/{pair}.json</a></td>
+  <td><a href="api/latest/{pair}.json" download>Download</a></td>
+</tr>"""
+        )
+
+    html_archive_items: list[str] = []
+    for ymd in archive_paths:
+        iso = ymd.replace("/", "-")
+        html_archive_items.append(
+            f'  <li><a href="api/{ymd}/all.json">{iso} — api/{ymd}/all.json</a></li>'
+        )
+
+    if not html_archive_items:
+        html_archive_items.append('  <li><em>No archives yet — daily run will populate this.</em></li>')
+
+    pairs_section = "\n".join(html_pairs_rows) if html_pairs_rows else (
+        '<tr><td colspan="3"><em>No pair data yet.</em></td></tr>'
+    )
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FX Monte Carlo API</title>
+  <style>
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      max-width: 960px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #222;
+      line-height: 1.5;
+    }}
+    h1 {{ margin-bottom: 4px; }}
+    h2 {{ margin-top: 36px; border-bottom: 1px solid #eee; padding-bottom: 6px; }}
+    table {{ border-collapse: collapse; width: 100%; margin-top: 12px; }}
+    th, td {{ border: 1px solid #ddd; padding: 10px 12px; text-align: left; }}
+    th {{ background: #f5f5f5; }}
+    tr:hover {{ background: #fafafa; }}
+    a {{ color: #0366d6; text-decoration: none; }}
+    a:hover {{ text-decoration: underline; }}
+    ul {{ padding-left: 20px; }}
+    li {{ margin: 4px 0; }}
+    code {{
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }}
+  </style>
+</head>
+<body>
+
+<h1>FX Monte Carlo API</h1>
+<p>Automated daily Monte Carlo forecasts. Runs every day at <strong>00:00 UTC</strong> via GitHub Actions and published via GitHub Pages.</p>
+
+<h2>Latest Snapshot</h2>
+<ul>
+  <li><a href="api/latest/all.json"><code>api/latest/all.json</code></a> — all pairs, newest run</li>
+</ul>
+
+<h2>Available Pairs</h2>
+<table>
+<tr>
+  <th>Pair</th>
+  <th>Endpoint</th>
+  <th>Download</th>
+</tr>
+{pairs_section}
+</table>
+
+<h2>Daily Archive</h2>
+<p>First snapshot of each day — never overwritten.</p>
+<ul>
+{chr(10).join(html_archive_items)}
+</ul>
+
+<p style="margin-top: 40px; color: #888; font-size: 0.9em;">
+  See <a href="API.md">API.md</a> for documentation and usage examples.
+</p>
+
+</body>
+</html>
+"""
+
+    outfile = BASE_DIR / "index.html"
+    outfile.write_text(html, encoding="utf-8")
+    logger.info(
+        "Generated index.html (%d pairs, %d archive days)",
+        len(pair_files),
+        len(archive_paths),
+    )
+
+
 def main() -> None:
     logger.info("build_api starting")
     results = load_results()
     build_all(results)
+    generate_index(API_DIR)
     logger.info("build_api complete")
 
 
