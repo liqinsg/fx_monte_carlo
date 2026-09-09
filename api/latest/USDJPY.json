@@ -2,23 +2,23 @@
   "timeframe": "D",
   "pair": "USDJPY",
   "date": "2026-09-09",
-  "current_price": 153.513,
-  "ann_drift_pct": -5.47,
-  "ann_vol_pct": 7.28,
+  "current_price": 153.37,
+  "ann_drift_pct": -6.31,
+  "ann_vol_pct": 7.27,
   "range_90": [
-    150.789,
-    155.957
+    150.626,
+    155.783
   ],
-  "percentile_rank": 54.4,
-  "p_up": 45.6,
-  "p_down": 54.4,
-  "p_up_pct": 45.6,
-  "p_down_pct": 54.4,
+  "percentile_rank": 55.2,
+  "p_up": 44.8,
+  "p_down": 55.2,
+  "p_up_pct": 44.8,
+  "p_down_pct": 55.2,
   "touch_upper_pct": 6.3,
   "touch_lower_pct": 6.1,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-09-09T21:54:09.540459+00:00"
+  "generated_utc": "2026-09-09T23:38:14.214213+00:00"
 }
