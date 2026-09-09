@@ -1,0 +1,42 @@
+name: FX Monte Carlo Daily
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas yfinance
+
+      - name: Run FX Monte Carlo
+        run: python fx_monte_carlo.py
+
+      - name: Build API outputs
+        run: python build_api.py
+
+      - name: Commit generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add daily_results/ api/
+          git diff --cached --quiet || (git commit -m "MC: daily forecast $(date -u +%Y-%m-%d)" && git push)

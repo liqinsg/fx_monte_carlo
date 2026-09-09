@@ -1,0 +1,21 @@
+{
+  "timeframe": "D",
+  "pair": "USDJPY",
+  "date": "2026-09-09",
+  "current_price": 149.45,
+  "ann_drift_pct": -0.5,
+  "ann_vol_pct": 5.2,
+  "range_90": [142.30, 156.80],
+  "percentile_rank": 55.1,
+  "p_up": 45.3,
+  "p_down": 54.7,
+  "p_up_pct": 45.3,
+  "p_down_pct": 54.7,
+  "touch_upper_pct": 12.1,
+  "touch_lower_pct": 16.8,
+  "regime": "🔹 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-09T00:00:10+00:00"
+}

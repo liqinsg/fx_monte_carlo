@@ -9,15 +9,25 @@ FX MONTE CARLO ENGINE — DAILY PRIMARY (H4 OPTIONAL)
 ✅ Consistent JSON output for trading bot
 ✅ Console + JSON output only (no Telegram, no OANDA)
 """
-import sys
+from __future__ import annotations
+
 import json
-import argparse
+import logging
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
-from pathlib import Path
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger("fx_mc")
 
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
@@ -27,26 +37,26 @@ import config
 # ==========================================
 # ⚙️ ARG PARSE + TIMEFRAME CONFIG
 # ==========================================
+import argparse
+
 parser = argparse.ArgumentParser(description="FX Monte Carlo — Daily or H4")
 parser.add_argument("--timeframe", choices=["D", "H4"], default="D", help="Timeframe: D (Daily, default) / H4 (4‑Hour)")
 args = parser.parse_args()
 TF = args.timeframe
 
-def cfg(name, default):
+
+def cfg(name: str, default: Any) -> Any:
     return getattr(config, name, default)
 
-# PAIRS = cfg("DEFAULT_PAIRS", [
-#     "EURUSD=X", "GBPUSD=X", "EURJPY=X", "GBPJPY=X",
-#     "AUDUSD=X", "USDJPY=X", "GBPAUD=X", "USDCHF=X"
-# ])
-PAIRS = cfg("DEFAULT_PAIRS", [
+
+PAIRS: list[str] = cfg("DEFAULT_PAIRS", [
     "EURUSD=X", "GBPUSD=X", "EURJPY=X", "GBPJPY=X",
     "AUDUSD=X", "USDJPY=X", "GBPAUD=X", "USDCHF=X",
     "NZDUSD=X", "EURGBP=X", "CADJPY=X", "USDCAD=X", "CHFJPY=X"
 ])
-SIMULATIONS = cfg("MC_SIMULATIONS", 5000)
-CONFIDENCE = cfg("MC_CONFIDENCE", 0.90)
-RESULTS_DIR = BASE_DIR / "daily_results"
+SIMULATIONS: int = cfg("MC_SIMULATIONS", 5000)
+CONFIDENCE: float = cfg("MC_CONFIDENCE", 0.90)
+RESULTS_DIR: Path = BASE_DIR / "daily_results"
 RESULTS_DIR.mkdir(exist_ok=True)
 
 # ——— TIMEFRAME‑SPECIFIC PARAMS ———
@@ -54,10 +64,10 @@ if TF == "H4":
     YF_INTERVAL = "4h"
     YF_PERIOD_FULL = "30d"
     YF_PERIOD_RESAMPLE = "60d"
-    LOOKBACK = cfg("H4_LOOKBACK", 90)
-    FORECAST = cfg("H4_FORECAST", 8)
-    PERIODS_YEAR = 252 * 6
-    DT_SCALE = 6
+    LOOKBACK: int = cfg("H4_LOOKBACK", 90)
+    FORECAST: int = cfg("H4_FORECAST", 8)
+    PERIODS_YEAR: int = 252 * 6
+    DT_SCALE: int = 1
     REPORT_TITLE = "FX H4 MONTE CARLO UPDATE"
 else:
     YF_INTERVAL = "1d"
@@ -69,21 +79,26 @@ else:
     DT_SCALE = 1
     REPORT_TITLE = "FX DAILY MONTE CARLO UPDATE"
 
+
+def clean_pair_name(raw: str) -> str:
+    return raw.replace("=X", "").replace("=", "_")
+
+
 # ==========================================
 # 🛡️ MARKET STATUS — FAST SCHEDULE EXIT (London TZ, zero API cost)
 # ==========================================
-def forex_market_closed():
+def forex_market_closed() -> bool:
     now = datetime.now(ZoneInfo("Europe/London"))
     wd = now.weekday()
     return (
-        wd == 5                      # Saturday all-day
-        or (wd == 6 and now.hour < 21)   # Sunday before 21:00 London
-        or (wd == 4 and now.hour >= 21)  # Friday after 21:00 London
+        wd == 5
+        or (wd == 6 and now.hour < 21)
+        or (wd == 4 and now.hour >= 21)
     )
 
+
 if forex_market_closed():
-    msg = f"⏸️ FX {TF} MC: Market closed — skipped"
-    print(msg)
+    logger.info("FX %s MC: Market closed — skipped", TF)
     raise SystemExit(0)
 
 # ==========================================
@@ -93,7 +108,7 @@ def fetch_data(pair: str) -> pd.DataFrame:
     try:
         df = yf.download(pair, period=YF_PERIOD_FULL, interval=YF_INTERVAL, progress=False)
         if len(df) >= LOOKBACK:
-            return df[["Open","High","Low","Close"]].dropna()
+            return df[["Open", "High", "Low", "Close"]].dropna()
     except Exception:
         pass
     try:
@@ -101,23 +116,23 @@ def fetch_data(pair: str) -> pd.DataFrame:
         df = yf.download(pair, period=YF_PERIOD_RESAMPLE, interval=fallback_interval, progress=False)
         if df.empty:
             return pd.DataFrame()
-        return df[["Open","High","Low","Close"]].resample(YF_INTERVAL).agg({
-            "Open":"first", "High":"max", "Low":"min", "Close":"last"
+        return df[["Open", "High", "Low", "Close"]].resample(YF_INTERVAL).agg({
+            "Open": "first", "High": "max", "Low": "min", "Close": "last"
         }).dropna()
-    except Exception as e:
-        print(f"❌ Data failed {pair}: {e}")
+    except Exception as exc:
+        logger.error("Data failed for %s: %s", pair, exc)
         return pd.DataFrame()
 
+
 # ==========================================
-# 🧠 UNIFIED PROBABILITY ENGINE — WARNING FIXED
+# 🧠 UNIFIED PROBABILITY ENGINE
 # ==========================================
-def run_mc(pair: str):
+def run_mc(pair: str) -> tuple[dict[str, Any], bool]:
     df = fetch_data(pair)
     if len(df) < LOOKBACK:
-        return None, False
+        return {}, False
 
     closes = df["Close"].values[-LOOKBACK:]
-    # ✅ FIXED: extract scalar properly — no deprecation warning
     current = float(closes[-1].item())
     log_returns = np.log(closes[1:] / closes[:-1])
 
@@ -130,13 +145,14 @@ def run_mc(pair: str):
     paths[:, 0] = current
     for t in range(1, FORECAST + 1):
         z = np.random.normal(0, 1, SIMULATIONS)
-        paths[:, t] = paths[:, t-1] * np.exp(
-            (drift/PERIODS_YEAR - 0.5 * (vol**2)/PERIODS_YEAR) + (vol * np.sqrt(dt)) * z
+        paths[:, t] = paths[:, t - 1] * np.exp(
+            (drift / PERIODS_YEAR - 0.5 * (vol ** 2) / PERIODS_YEAR)
+            + (vol * np.sqrt(dt)) * z
         )
 
     final = paths[:, -1]
-    lower = float(np.percentile(final, (1 - CONFIDENCE)/2 * 100))
-    upper = float(np.percentile(final, (1 + CONFIDENCE)/2 * 100))
+    lower = float(np.percentile(final, (1 - CONFIDENCE) / 2 * 100))
+    upper = float(np.percentile(final, (1 + CONFIDENCE) / 2 * 100))
 
     percentile = round((np.sum(final <= current) / SIMULATIONS) * 100, 1)
     p_up = round((np.sum(final > current) / SIMULATIONS) * 100, 1)
@@ -156,9 +172,11 @@ def run_mc(pair: str):
         regime = f"🔹 {TF} NEUTRAL"
 
     dec = 3 if "JPY" in pair else 5
+    now_utc = datetime.now(timezone.utc)
     return {
         "timeframe": TF,
-        "pair": pair,
+        "pair": clean_pair_name(pair),
+        "date": now_utc.strftime("%Y-%m-%d"),
         "current_price": round(current, dec),
         "ann_drift_pct": round(drift * 100, 2),
         "ann_vol_pct": round(vol * 100, 2),
@@ -174,33 +192,37 @@ def run_mc(pair: str):
         "lookback": LOOKBACK,
         "forecast": FORECAST,
         "simulations": SIMULATIONS,
-        "generated_utc": datetime.now(timezone.utc).isoformat()
+        "generated_utc": now_utc.isoformat(),
     }, True
+
 
 # ==========================================
 # 🚀 MAIN RUN
 # ==========================================
-def main():
+def main() -> None:
     now_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M")
-    all_results = []
-    print(f"🔬 {TF} MC RUN — {now_str} UTC | Pairs: {len(PAIRS)}")
+    all_results: list[dict[str, Any]] = []
+    logger.info("MC RUN — %s UTC | TF=%s | Pairs=%d", now_str, TF, len(PAIRS))
+
     for pair in PAIRS:
-        print(f"🔄 Processing: {pair}")
+        logger.info("Processing: %s", pair)
         data, ok = run_mc(pair)
         if not ok:
-            print(f"⚠️ Skipped {pair}")
+            logger.warning("Skipped %s", pair)
             continue
         all_results.append(data)
-        safe = pair.replace("=X","").replace("=","_")
+        safe = clean_pair_name(pair)
         tag = "daily" if TF == "D" else "h4"
-        with open(RESULTS_DIR / f"{tag}_mc_{safe}_{now_str}.json", "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"✅ Saved → {tag}_mc_{safe}_{now_str}.json")
-    print("✅ Run complete")
+        outfile = RESULTS_DIR / f"{tag}_mc_{safe}_{now_str}.json"
+        outfile.write_text(json.dumps(data, indent=2))
+        logger.info("Saved → %s", outfile.name)
+
+    logger.info("Run complete — %d results written", len(all_results))
+
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        err = f"❌ {TF} MC Error: {e}"
-        print(err)
+    except Exception as exc:
+        logger.exception("MC Run failed: %s", exc)
+        raise SystemExit(1) from exc
