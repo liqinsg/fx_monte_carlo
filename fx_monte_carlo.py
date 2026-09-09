@@ -32,7 +32,10 @@ logger = logging.getLogger("fx_mc")
 BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 
-import config
+try:
+    import config  # type: ignore[import-not-found]
+except ModuleNotFoundError:
+    config = None
 
 # ==========================================
 # ⚙️ ARG PARSE + TIMEFRAME CONFIG
@@ -46,6 +49,8 @@ TF = args.timeframe
 
 
 def cfg(name: str, default: Any) -> Any:
+    if config is None:
+        return default
     return getattr(config, name, default)
 
 
