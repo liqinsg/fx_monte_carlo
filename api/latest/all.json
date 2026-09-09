@@ -1,90 +1,90 @@
 {
   "date": "2026-09-09",
-  "generated_utc": "2026-09-09T19:31:19Z",
+  "generated_utc": "2026-09-09T21:54:11Z",
   "count": 13,
   "pairs": [
     {
       "timeframe": "D",
       "pair": "AUDUSD",
       "date": "2026-09-09",
-      "current_price": 0.72187,
-      "ann_drift_pct": -0.64,
+      "current_price": 0.72192,
+      "ann_drift_pct": -0.62,
       "ann_vol_pct": 6.71,
       "range_90": [
-        0.71068,
-        0.73308
+        0.71073,
+        0.73314
       ],
-      "percentile_rank": 50.1,
-      "p_up": 49.9,
-      "p_down": 50.1,
-      "p_up_pct": 49.9,
-      "p_down_pct": 50.1,
+      "percentile_rank": 50.0,
+      "p_up": 50.0,
+      "p_down": 50.0,
+      "p_up_pct": 50.0,
+      "p_down_pct": 50.0,
       "touch_upper_pct": 6.1,
       "touch_lower_pct": 6.2,
       "regime": "\u23f3 D CONSOLIDATION RANGE",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:17.535159+00:00"
+      "generated_utc": "2026-09-09T21:54:09.273293+00:00"
     },
     {
       "timeframe": "D",
       "pair": "CADJPY",
       "date": "2026-09-09",
-      "current_price": 111.449,
-      "ann_drift_pct": -11.07,
-      "ann_vol_pct": 6.9,
+      "current_price": 111.172,
+      "ann_drift_pct": -8.99,
+      "ann_vol_pct": 6.73,
       "range_90": [
-        109.445,
-        112.999
+        109.263,
+        112.719
       ],
-      "percentile_rank": 59.0,
-      "p_up": 41.0,
-      "p_down": 59.0,
-      "p_up_pct": 41.0,
-      "p_down_pct": 59.0,
-      "touch_upper_pct": 6.6,
+      "percentile_rank": 57.5,
+      "p_up": 42.5,
+      "p_down": 57.5,
+      "p_up_pct": 42.5,
+      "p_down_pct": 57.5,
+      "touch_upper_pct": 6.5,
       "touch_lower_pct": 6.0,
       "regime": "\ud83d\udd39 D NEUTRAL",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:18.850289+00:00"
+      "generated_utc": "2026-09-09T21:54:11.340894+00:00"
     },
     {
       "timeframe": "D",
       "pair": "CHFJPY",
       "date": "2026-09-09",
-      "current_price": 189.534,
-      "ann_drift_pct": -16.52,
-      "ann_vol_pct": 6.72,
+      "current_price": 189.404,
+      "ann_drift_pct": -16.71,
+      "ann_vol_pct": 6.73,
       "range_90": [
-        186.005,
-        191.88
+        185.867,
+        191.744
       ],
-      "percentile_rank": 63.7,
-      "p_up": 36.3,
-      "p_down": 63.7,
-      "p_up_pct": 36.3,
-      "p_down_pct": 63.7,
+      "percentile_rank": 63.9,
+      "p_up": 36.1,
+      "p_down": 63.9,
+      "p_up_pct": 36.1,
+      "p_down_pct": 63.9,
       "touch_upper_pct": 7.0,
       "touch_lower_pct": 5.8,
       "regime": "\u26a1 D STRONG MOMENTUM",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:19.480870+00:00"
+      "generated_utc": "2026-09-09T21:54:11.792478+00:00"
     },
     {
       "timeframe": "D",
       "pair": "EURGBP",
       "date": "2026-09-09",
-      "current_price": 0.85859,
-      "ann_drift_pct": -1.87,
+      "current_price": 0.85863,
+      "ann_drift_pct": -1.86,
       "ann_vol_pct": 3.08,
       "range_90": [
-        0.85219,
-        0.86444
+        0.85223,
+        0.86448
       ],
       "percentile_rank": 53.5,
       "p_up": 46.5,
@@ -97,18 +97,18 @@
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:18.584360+00:00"
+      "generated_utc": "2026-09-09T21:54:11.154907+00:00"
     },
     {
       "timeframe": "D",
       "pair": "EURJPY",
       "date": "2026-09-09",
-      "current_price": 178.628,
-      "ann_drift_pct": -8.16,
+      "current_price": 178.588,
+      "ann_drift_pct": -8.22,
       "ann_vol_pct": 6.41,
       "range_90": [
-        175.717,
-        181.012
+        175.675,
+        180.969
       ],
       "percentile_rank": 57.2,
       "p_up": 42.8,
@@ -121,66 +121,66 @@
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:17.147237+00:00"
+      "generated_utc": "2026-09-09T21:54:08.086996+00:00"
     },
     {
       "timeframe": "D",
       "pair": "EURUSD",
       "date": "2026-09-09",
-      "current_price": 1.16306,
-      "ann_drift_pct": -2.83,
+      "current_price": 1.16387,
+      "ann_drift_pct": -2.63,
       "ann_vol_pct": 4.49,
       "range_90": [
-        1.15043,
-        1.17458
+        1.15127,
+        1.17546
       ],
-      "percentile_rank": 53.6,
-      "p_up": 46.4,
-      "p_down": 53.6,
-      "p_up_pct": 46.4,
-      "p_down_pct": 53.6,
+      "percentile_rank": 53.4,
+      "p_up": 46.6,
+      "p_down": 53.4,
+      "p_up_pct": 46.6,
+      "p_down_pct": 53.4,
       "touch_upper_pct": 6.3,
       "touch_lower_pct": 6.1,
       "regime": "\ud83d\udd39 D NEUTRAL",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:16.705431+00:00"
+      "generated_utc": "2026-09-09T21:54:07.244036+00:00"
     },
     {
       "timeframe": "D",
       "pair": "GBPAUD",
       "date": "2026-09-09",
-      "current_price": 1.87665,
-      "ann_drift_pct": -0.27,
+      "current_price": 1.87656,
+      "ann_drift_pct": -0.28,
       "ann_vol_pct": 5.1,
       "range_90": [
-        1.85457,
-        1.89891
+        1.85448,
+        1.89881
       ],
-      "percentile_rank": 49.7,
-      "p_up": 50.3,
-      "p_down": 49.7,
-      "p_up_pct": 50.3,
-      "p_down_pct": 49.7,
+      "percentile_rank": 49.8,
+      "p_up": 50.2,
+      "p_down": 49.8,
+      "p_up_pct": 50.2,
+      "p_down_pct": 49.8,
       "touch_upper_pct": 6.1,
       "touch_lower_pct": 6.2,
       "regime": "\u23f3 D CONSOLIDATION RANGE",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:17.975416+00:00"
+      "generated_utc": "2026-09-09T21:54:10.028858+00:00"
     },
     {
       "timeframe": "D",
       "pair": "GBPJPY",
       "date": "2026-09-09",
-      "current_price": 208.037,
-      "ann_drift_pct": -6.27,
-      "ann_vol_pct": 7.13,
+      "current_price": 207.948,
+      "ann_drift_pct": -6.39,
+      "ann_vol_pct": 7.14,
       "range_90": [
-        204.382,
-        211.244
+        204.288,
+        211.15
       ],
       "percentile_rank": 55.2,
       "p_up": 44.8,
@@ -193,42 +193,42 @@
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:17.340323+00:00"
+      "generated_utc": "2026-09-09T21:54:08.658092+00:00"
     },
     {
       "timeframe": "D",
       "pair": "GBPUSD",
       "date": "2026-09-09",
-      "current_price": 1.35432,
-      "ann_drift_pct": -1.01,
+      "current_price": 1.35483,
+      "ann_drift_pct": -0.91,
       "ann_vol_pct": 5.7,
       "range_90": [
-        1.33635,
-        1.37206
+        1.33688,
+        1.37261
       ],
-      "percentile_rank": 50.7,
-      "p_up": 49.3,
-      "p_down": 50.7,
-      "p_up_pct": 49.3,
-      "p_down_pct": 50.7,
+      "percentile_rank": 50.6,
+      "p_up": 49.4,
+      "p_down": 50.6,
+      "p_up_pct": 49.4,
+      "p_down_pct": 50.6,
       "touch_upper_pct": 6.1,
       "touch_lower_pct": 6.2,
       "regime": "\u23f3 D CONSOLIDATION RANGE",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:16.942115+00:00"
+      "generated_utc": "2026-09-09T21:54:07.522682+00:00"
     },
     {
       "timeframe": "D",
       "pair": "NZDUSD",
       "date": "2026-09-09",
-      "current_price": 0.58391,
-      "ann_drift_pct": -5.5,
+      "current_price": 0.58398,
+      "ann_drift_pct": -5.47,
       "ann_vol_pct": 7.98,
       "range_90": [
-        0.57261,
-        0.59416
+        0.57269,
+        0.59423
       ],
       "percentile_rank": 54.0,
       "p_up": 46.0,
@@ -241,79 +241,79 @@
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:18.371890+00:00"
+      "generated_utc": "2026-09-09T21:54:10.759277+00:00"
     },
     {
       "timeframe": "D",
       "pair": "USDCAD",
       "date": "2026-09-09",
-      "current_price": 1.38095,
-      "ann_drift_pct": 3.56,
+      "current_price": 1.38008,
+      "ann_drift_pct": 3.38,
       "ann_vol_pct": 3.85,
       "range_90": [
-        1.36971,
-        1.39433
+        1.3688,
+        1.39341
       ],
-      "percentile_rank": 43.9,
-      "p_up": 56.1,
-      "p_down": 43.9,
-      "p_up_pct": 56.1,
-      "p_down_pct": 43.9,
+      "percentile_rank": 44.0,
+      "p_up": 56.0,
+      "p_down": 44.0,
+      "p_up_pct": 56.0,
+      "p_down_pct": 44.0,
       "touch_upper_pct": 5.9,
       "touch_lower_pct": 6.5,
       "regime": "\ud83d\udd39 D NEUTRAL",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:19.256949+00:00"
+      "generated_utc": "2026-09-09T21:54:11.600559+00:00"
     },
     {
       "timeframe": "D",
       "pair": "USDCHF",
       "date": "2026-09-09",
-      "current_price": 0.81047,
-      "ann_drift_pct": 11.26,
+      "current_price": 0.80905,
+      "ann_drift_pct": 10.77,
       "ann_vol_pct": 6.59,
       "range_90": [
-        0.80001,
-        0.82479
+        0.79854,
+        0.82326
       ],
-      "percentile_rank": 40.2,
-      "p_up": 59.8,
-      "p_down": 40.2,
-      "p_up_pct": 59.8,
-      "p_down_pct": 40.2,
+      "percentile_rank": 40.5,
+      "p_up": 59.5,
+      "p_down": 40.5,
+      "p_up_pct": 59.5,
+      "p_down_pct": 40.5,
       "touch_upper_pct": 5.7,
-      "touch_lower_pct": 6.8,
+      "touch_lower_pct": 6.7,
       "regime": "\ud83d\udd39 D NEUTRAL",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:18.175190+00:00"
+      "generated_utc": "2026-09-09T21:54:10.349231+00:00"
     },
     {
       "timeframe": "D",
       "pair": "USDJPY",
       "date": "2026-09-09",
-      "current_price": 153.619,
-      "ann_drift_pct": -5.28,
+      "current_price": 153.513,
+      "ann_drift_pct": -5.47,
       "ann_vol_pct": 7.28,
       "range_90": [
-        150.9,
-        156.069
+        150.789,
+        155.957
       ],
-      "percentile_rank": 54.3,
-      "p_up": 45.7,
-      "p_down": 54.3,
-      "p_up_pct": 45.7,
-      "p_down_pct": 54.3,
+      "percentile_rank": 54.4,
+      "p_up": 45.6,
+      "p_down": 54.4,
+      "p_up_pct": 45.6,
+      "p_down_pct": 54.4,
       "touch_upper_pct": 6.3,
       "touch_lower_pct": 6.1,
       "regime": "\ud83d\udd39 D NEUTRAL",
       "lookback": 90,
       "forecast": 5,
       "simulations": 5000,
-      "generated_utc": "2026-09-09T19:31:17.794153+00:00"
+      "generated_utc": "2026-09-09T21:54:09.540459+00:00"
     }
   ]
 }
