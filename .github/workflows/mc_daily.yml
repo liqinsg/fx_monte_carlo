@@ -31,7 +31,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run FX Monte Carlo
-        run: python fx_monte_carlo.py
+        run: python fx_monte_carlo.py -d
 
       - name: Build API outputs
         run: python build_api.py
