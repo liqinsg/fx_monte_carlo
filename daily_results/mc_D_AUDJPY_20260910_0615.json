@@ -1,0 +1,21 @@
+{
+  "timeframe": "D",
+  "pair": "AUDJPY=X",
+  "current_price": 110.797,
+  "ann_drift_pct": -5.69,
+  "ann_vol_pct": 7.52,
+  "range_90": [
+    108.775,
+    112.535
+  ],
+  "percentile_rank": 55.1,
+  "p_up": 44.9,
+  "p_down": 55.1,
+  "var_95": -0.0182,
+  "cvar_95": -0.023,
+  "expected_price": 110.651,
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-10T06:15:23.042784+00:00"
+}
