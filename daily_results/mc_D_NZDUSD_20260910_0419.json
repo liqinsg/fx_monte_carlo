@@ -1,0 +1,21 @@
+{
+  "timeframe": "D",
+  "pair": "NZDUSD=X",
+  "current_price": 0.58531,
+  "ann_drift_pct": -4.1,
+  "ann_vol_pct": 7.9,
+  "range_90": [
+    0.5743,
+    0.59518
+  ],
+  "percentile_rank": 53.7,
+  "p_up": 46.3,
+  "p_down": 53.7,
+  "var_95": -0.0188,
+  "cvar_95": -0.0238,
+  "expected_price": 0.58471,
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-10T04:19:54.161743+00:00"
+}

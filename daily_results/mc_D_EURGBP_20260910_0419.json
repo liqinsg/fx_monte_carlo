@@ -1,0 +1,21 @@
+{
+  "timeframe": "D",
+  "pair": "EURGBP=X",
+  "current_price": 0.85852,
+  "ann_drift_pct": -2.24,
+  "ann_vol_pct": 3.07,
+  "range_90": [
+    0.85211,
+    0.86403
+  ],
+  "percentile_rank": 54.8,
+  "p_up": 45.2,
+  "p_down": 54.8,
+  "var_95": -0.0075,
+  "cvar_95": -0.0095,
+  "expected_price": 0.85807,
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-10T04:19:54.301137+00:00"
+}
