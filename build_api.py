@@ -1,4 +1,4 @@
-"""Build public API from mc_daily_results and weekly_results JSON files."""
+"""Build public API from mc_daily_results and mc_weekly_results JSON files."""
 from __future__ import annotations
 
 import json
