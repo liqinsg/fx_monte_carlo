@@ -51,12 +51,9 @@ Examples:
   python get_mc_data.py --dates                      # List all available daily dates
   python get_mc_data.py --weeks                      # List all available weekly dates
   python get_mc_data.py --date latest                # Get latest daily snapshot (all pairs)
-  python get_mc_data.py --date latest --pair EURUSD  # Get latest daily for EURUSD only
   python get_mc_data.py --date 2026-09-09            # Get daily snapshot for a specific day
   python get_mc_data.py --week latest                # Get latest weekly snapshot (all pairs)
-  python get_mc_data.py --week latest --pair EURUSD  # Get latest weekly for EURUSD only
   python get_mc_data.py --week 2026-09-10            # Get weekly snapshot for that date
-  python get_mc_data.py --week 2026-W36              # Get weekly snapshot (ISO week)
         """,
     )
 
