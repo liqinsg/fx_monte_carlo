@@ -27,7 +27,6 @@ def clean_pair_name(raw: str) -> str:
 def _utc_from_iso(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
-
 def _load_results(results_dir: Path) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     if not results_dir.is_dir():
@@ -37,21 +36,18 @@ def _load_results(results_dir: Path) -> list[dict[str, Any]]:
     for path in sorted(results_dir.glob("*.json")):
         try:
             data = json.loads(path.read_text())
-            if (
-                isinstance(data, dict)
-                and "results" in data
-                and isinstance(data["results"], dict)
-            ):
-                # Unified batch format from fx_monte_carlo.py: {"metadata": {...}, "results": {pair: {...}}}
-                results.extend(data["results"].values())
+            nested = data.get("results")
+            if isinstance(nested, dict):
+                for pair_key, pair_data in nested.items():
+                    if isinstance(pair_data, dict):
+                        pair_data.setdefault("pair", pair_key)
+                        results.append(pair_data)
             else:
-                # Legacy flat single-pair format, kept for backward compatibility
                 results.append(data)
         except (json.JSONDecodeError, OSError) as exc:
             logger.error("Failed to parse %s: %s", path.name, exc)
     logger.info("Loaded %d files from %s/", len(results), results_dir.name)
     return results
-
 
 def _group_latest(results: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     latest: dict[str, dict[str, Any]] = {}
