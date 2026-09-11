@@ -204,6 +204,7 @@ def generate_date_index(api_dir: Path = API_DIR) -> None:
 def generate_weekly_date_index(api_dir: Path = API_DIR) -> None:
     weekly_path = api_dir / "weekly"
     dates = _scan_archive_dirs(weekly_path)
+    # iso_dates = sorted([f"{y}-{m}-{d}" for y, m, d in dates], reverse=True)
     iso_dates = sorted([f"{y}-{m}-{d}" for y, m, d in dates], reverse=True)
     index_file = api_dir / "weekly_dates.json"
     with open(index_file, "w", encoding="utf-8") as f:
