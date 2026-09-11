@@ -1,4 +1,4 @@
-"""Build public API from daily_results and weekly_results JSON files."""
+"""Build public API from mc_daily_results and weekly_results JSON files."""
 from __future__ import annotations
 
 import json
@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Any
 
 BASE_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = BASE_DIR / "daily_results"
-WEEKLY_RESULTS_DIR = BASE_DIR / "weekly_results"
+RESULTS_DIR = BASE_DIR / "mc_daily_results"
+WEEKLY_RESULTS_DIR = BASE_DIR / "mc_weekly_results"
 API_DIR = BASE_DIR / "api"
 
 logging.basicConfig(

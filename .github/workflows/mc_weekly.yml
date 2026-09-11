@@ -1,10 +1,8 @@
-name: FX Monte Carlo Daily
+name: FX Monte Carlo Weekly
 
 on:
-  # schedule:
-  #   - cron: '0 0 * * *'
-  #schedule:
-  #  - cron: '* * * * *'
+  schedule:
+    - cron: '0 0 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -31,7 +29,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run FX Monte Carlo
-        run: python fx_monte_carlo.py D
+        run: python fx_monte_carlo.py W
 
       - name: Build API outputs
         run: python build_api.py
@@ -40,5 +38,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add daily_results/ weekly_results/ api/
-          git diff --cached --quiet || (git commit -m "MC: daily forecast $(date -u +%Y-%m-%d)" && git push)
+          git add mc_weekly_results/ api/
+          git diff --cached --quiet || (git commit -m "MC: weekly forecast $(date -u +%Y-%m-%d)" && git push)

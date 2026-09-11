@@ -38,7 +38,7 @@ jobs:
 
       - name: Commit generated files
         run: |
-          git config user.name "github-actions[bot]"
+          git config user.name "github-actions[bot]"  
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add daily_results/ weekly_results/ api/
+          git add mc_daily_results/ api/
           git diff --cached --quiet || (git commit -m "MC: daily forecast $(date -u +%Y-%m-%d)" && git push)
