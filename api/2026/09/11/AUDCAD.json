@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "AUDCAD",
+  "current_price": 0.99044,
+  "ann_drift_pct": 0.17,
+  "ann_vol_pct": 5.89,
+  "range_90": [
+    0.97717,
+    1.00351
+  ],
+  "percentile_rank": 50.7,
+  "p_up": 49.3,
+  "p_down": 50.7,
+  "p_up_pct": 49.3,
+  "p_down_pct": 50.7,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.6,
+  "var_95": -0.0134,
+  "cvar_95": -0.0172,
+  "expected_price": 0.99032,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-11T02:23:04.544067+00:00",
+  "date": "2026-09-11"
+}

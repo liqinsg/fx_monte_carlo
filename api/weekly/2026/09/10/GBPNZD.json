@@ -1,0 +1,27 @@
+{
+  "timeframe": "W",
+  "pair": "GBPNZD",
+  "current_price": 2.31893,
+  "ann_drift_pct": 4.16,
+  "ann_vol_pct": 5.99,
+  "range_90": [
+    2.25854,
+    2.39718
+  ],
+  "percentile_rank": 41.7,
+  "p_up": 58.3,
+  "p_down": 41.7,
+  "p_up_pct": 58.3,
+  "p_down_pct": 41.7,
+  "touch_upper_pct": 6.0,
+  "touch_lower_pct": 7.2,
+  "var_95": -0.026,
+  "cvar_95": -0.0343,
+  "expected_price": 2.32743,
+  "regime": "\ud83d\udd39 W NEUTRAL",
+  "lookback": 104,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-10T09:31:13.921357+00:00",
+  "date": "2026-09-10"
+}

@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "EURCAD",
+  "current_price": 1.60625,
+  "ann_drift_pct": -0.66,
+  "ann_vol_pct": 3.28,
+  "range_90": [
+    1.59398,
+    1.61781
+  ],
+  "percentile_rank": 51.7,
+  "p_up": 48.3,
+  "p_down": 51.7,
+  "p_up_pct": 48.3,
+  "p_down_pct": 51.7,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0076,
+  "cvar_95": -0.0098,
+  "expected_price": 1.60591,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-11T02:23:04.438871+00:00",
+  "date": "2026-09-11"
+}

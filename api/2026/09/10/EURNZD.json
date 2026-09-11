@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "EURNZD",
+  "current_price": 1.99099,
+  "ann_drift_pct": 2.23,
+  "ann_vol_pct": 5.28,
+  "range_90": [
+    1.96788,
+    2.01536
+  ],
+  "percentile_rank": 48.3,
+  "p_up": 51.7,
+  "p_down": 48.3,
+  "p_up_pct": 51.7,
+  "p_down_pct": 48.3,
+  "touch_upper_pct": 6.1,
+  "touch_lower_pct": 6.8,
+  "var_95": -0.0116,
+  "cvar_95": -0.015,
+  "expected_price": 1.9916,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-10T09:48:42.528971+00:00",
+  "date": "2026-09-10"
+}

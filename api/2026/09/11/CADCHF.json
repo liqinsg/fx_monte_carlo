@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "CADCHF",
+  "current_price": 0.58792,
+  "ann_drift_pct": 9.6,
+  "ann_vol_pct": 5.09,
+  "range_90": [
+    0.58219,
+    0.59574
+  ],
+  "percentile_rank": 39.3,
+  "p_up": 60.7,
+  "p_down": 39.3,
+  "p_up_pct": 60.7,
+  "p_down_pct": 39.3,
+  "touch_upper_pct": 5.9,
+  "touch_lower_pct": 7.3,
+  "var_95": -0.0097,
+  "cvar_95": -0.013,
+  "expected_price": 0.58896,
+  "regime": "\u26a1 D STRONG MOMENTUM",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-09-11T02:23:02.956220+00:00",
+  "date": "2026-09-11"
+}
