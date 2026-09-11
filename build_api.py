@@ -1,4 +1,5 @@
 """Build public API from mc_daily_results and weekly_results JSON files."""
+
 from __future__ import annotations
 
 import json
@@ -36,7 +37,16 @@ def _load_results(results_dir: Path) -> list[dict[str, Any]]:
     for path in sorted(results_dir.glob("*.json")):
         try:
             data = json.loads(path.read_text())
-            results.append(data)
+            if (
+                isinstance(data, dict)
+                and "results" in data
+                and isinstance(data["results"], dict)
+            ):
+                # Unified batch format from fx_monte_carlo.py: {"metadata": {...}, "results": {pair: {...}}}
+                results.extend(data["results"].values())
+            else:
+                # Legacy flat single-pair format, kept for backward compatibility
+                results.append(data)
         except (json.JSONDecodeError, OSError) as exc:
             logger.error("Failed to parse %s: %s", path.name, exc)
     logger.info("Loaded %d files from %s/", len(results), results_dir.name)
@@ -136,9 +146,7 @@ def _build_timeframe(
 
     latest_aggregate = {
         "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "generated_utc": datetime.now(timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%SZ"
-        ),
+        "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "count": len(all_latest),
         "pairs": all_latest,
     }
@@ -163,9 +171,7 @@ def _build_timeframe(
 
         dated_aggregate = {
             "date": date_key,
-            "generated_utc": datetime.now(timezone.utc).strftime(
-                "%Y-%m-%dT%H:%M:%SZ"
-            ),
+            "generated_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "count": len(written_today),
             "pairs": written_today,
         }
@@ -179,13 +185,25 @@ def _scan_archive_dirs(api_dir: Path) -> list[tuple[str, str, str]]:
     if not api_dir.is_dir():
         return archive
     for yyyy_dir in sorted(api_dir.iterdir()):
-        if not yyyy_dir.is_dir() or not yyyy_dir.name.isdigit() or len(yyyy_dir.name) != 4:
+        if (
+            not yyyy_dir.is_dir()
+            or not yyyy_dir.name.isdigit()
+            or len(yyyy_dir.name) != 4
+        ):
             continue
         for mm_dir in sorted(yyyy_dir.iterdir()):
-            if not mm_dir.is_dir() or not mm_dir.name.isdigit() or len(mm_dir.name) != 2:
+            if (
+                not mm_dir.is_dir()
+                or not mm_dir.name.isdigit()
+                or len(mm_dir.name) != 2
+            ):
                 continue
             for dd_dir in sorted(mm_dir.iterdir()):
-                if not dd_dir.is_dir() or not dd_dir.name.isdigit() or len(dd_dir.name) != 2:
+                if (
+                    not dd_dir.is_dir()
+                    or not dd_dir.name.isdigit()
+                    or len(dd_dir.name) != 2
+                ):
                     continue
                 archive.append((yyyy_dir.name, mm_dir.name, dd_dir.name))
     return sorted(archive, reverse=True)

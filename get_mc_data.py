@@ -59,10 +59,18 @@ Examples:
 
     parser.add_argument("--pair", type=str, help="Currency pair (e.g. EURUSD)")
     parser.add_argument("--date", type=str, help="Daily: YYYY-MM-DD or latest")
-    parser.add_argument("--week", type=str, help="Weekly: YYYY-MM-DD, YYYY-Www, or latest")
-    parser.add_argument("--dates", action="store_true", help="List available daily dates")
-    parser.add_argument("--weeks", action="store_true", help="List available weekly dates")
-    parser.add_argument("--debug", action="store_true", help="Print request URL to stderr")
+    parser.add_argument(
+        "--week", type=str, help="Weekly: YYYY-MM-DD, YYYY-Www, or latest"
+    )
+    parser.add_argument(
+        "--dates", action="store_true", help="List available daily dates"
+    )
+    parser.add_argument(
+        "--weeks", action="store_true", help="List available weekly dates"
+    )
+    parser.add_argument(
+        "--debug", action="store_true", help="Print request URL to stderr"
+    )
 
     if len(sys.argv) == 1:
         parser.print_help()
