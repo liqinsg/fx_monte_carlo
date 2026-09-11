@@ -41,12 +41,6 @@ except ImportError:
     log_mc_observation = None
     resolve_pending_mc_observations = None
 
-try:
-    from telegram_message import send_telegram_message
-except ImportError:
-    send_telegram_message = None
-
-
 # ==========================================
 # 📄 YAML DATA LOADING (STRICT)
 # ==========================================
@@ -185,15 +179,12 @@ def forex_market_closed():
 if forex_market_closed():
     msg = f"⏸️ FX {TF} MC: Market closed — skipped"
     print(msg)
-    if send_telegram_message:
-        send_telegram_message(msg)
     raise SystemExit(0)
 
 
 # ==========================================
 # 📥 DATA FETCH
 # ==========================================
-
 def fetch_data(pair: str) -> pd.DataFrame:
     interval = TF_CFG["yf_interval"]
     period = TF_CFG["yf_period"]
@@ -369,33 +360,6 @@ def save_batch_mc_safely(
 
 
 # ==========================================
-# 📤 TELEGRAM REPORT BUILDER
-# ==========================================
-
-def build_telegram(results: list) -> str:
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    lines = [
-        f"📊 **{TF_CFG['report_title']}**",
-        f"📅 Generated: {now}",
-        f"🔹 Timeframe: {TF} | Lookback: {TF_CFG['lookback']} | Forecast: {TF_CFG['forecast']} | Sims: {SIMULATIONS}",
-        "",
-    ]
-    for r in results:
-        lo, hi = r["range_90"]
-        lines.extend([
-            f"🔹 **{r['pair']}**",
-            f"   💵 Last Close: `{r['current_price']}`",
-            f"   📊 Percentile: `{r['percentile_rank']}%`",
-            f"   🎯 UP: `{r['p_up_pct']}%` | DOWN: `{r['p_down_pct']}%`",
-            f"   📏 90% Band: `{lo}` – `{hi}`",
-            f"   🔍 Touch: Low `{r['touch_lower_pct']}%` | High `{r['touch_upper_pct']}%`",
-            f"   {r['regime']}",
-            "",
-        ])
-    return "\n".join(lines)
-
-
-# ==========================================
 # 🚀 MAIN RUN
 # ==========================================
 
@@ -452,10 +416,6 @@ def main():
         if resolved := resolve_pending_mc_observations(current_prices):
             print(f"📊 Resolved {resolved} pending MC observation(s)")
 
-    if send_telegram_message and all_results:
-        send_telegram_message(build_telegram(all_results))
-        print("✅ Telegram report sent")
-
     print(f"✅ Run complete — {len(all_results)} pairs processed.")
 
 
@@ -465,5 +425,3 @@ if __name__ == "__main__":
     except Exception as e:
         err = f"❌ {TF} MC Error: {e}"
         print(err)
-        if send_telegram_message:
-            send_telegram_message(err)
