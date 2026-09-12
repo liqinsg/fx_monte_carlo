@@ -2,9 +2,8 @@ name: FX Monte Carlo Daily
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 1-5' 
   workflow_dispatch:
-
 permissions:
   contents: write
 
