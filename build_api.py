@@ -1,4 +1,9 @@
-"""Build public API from mc_daily_results and weekly_results JSON files."""
+"""Build public API from the unified mc_results JSON files (single directory).
+
+Daily and weekly runs both write into ``mc_results/``; filenames already
+encode the timeframe (``mc_D_all_pairs_*.json`` vs ``mc_W_all_pairs_*.json``),
+which is used here to split them into the daily and weekly API trees.
+"""
 
 from __future__ import annotations
 
@@ -9,8 +14,7 @@ from pathlib import Path
 from typing import Any
 
 BASE_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = BASE_DIR / "mc_daily_results"
-WEEKLY_RESULTS_DIR = BASE_DIR / "mc_weekly_results"
+RESULTS_DIR = BASE_DIR / "mc_results"
 API_DIR = BASE_DIR / "api"
 
 logging.basicConfig(
@@ -28,13 +32,20 @@ def _utc_from_iso(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
-def _load_results(results_dir: Path) -> list[dict[str, Any]]:
+def _load_results(
+    results_dir: Path,
+    timeframe: str | None = None,
+) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     if not results_dir.is_dir():
         logger.warning("%s/ not found — nothing to build.", results_dir.name)
         return results
 
     for path in sorted(results_dir.glob("*.json")):
+        # Single directory layout: filenames already encode the timeframe,
+        # e.g. mc_D_all_pairs_*.json (daily) vs mc_W_all_pairs_*.json (weekly).
+        if timeframe and not path.name.startswith(f"mc_{timeframe}_"):
+            continue
         try:
             data = json.loads(path.read_text())
             nested = data.get("results")
@@ -231,8 +242,8 @@ def generate_weekly_date_index(api_dir: Path = API_DIR) -> None:
 def main() -> None:
     logger.info("build_api starting")
 
-    daily = _load_results(RESULTS_DIR)
-    weekly = _load_results(WEEKLY_RESULTS_DIR)
+    daily = _load_results(RESULTS_DIR, timeframe="D")
+    weekly = _load_results(RESULTS_DIR, timeframe="W")
 
     _build_timeframe(daily, API_DIR, "api")
     _build_timeframe(weekly, API_DIR / "weekly", "api/weekly")
