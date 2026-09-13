@@ -5,10 +5,15 @@ FX MONTE CARLO ENGINE — DAILY & WEEKLY
 ======================================
 
 Usage:
-    python fx_monte_carlo.py D
-    python fx_monte_carlo.py W
-    python fx_monte_carlo.py -d
-    python fx_monte_carlo.py -w
+    python fx_monte_carlo.py            # default: D (Daily)
+    python fx_monte_carlo.py D          # Daily
+    python fx_monte_carlo.py W          # Weekly
+    python fx_monte_carlo.py -d         # Daily
+    python fx_monte_carlo.py -w         # Weekly
+
+The default timeframe is D (Daily). All results are saved into a single
+``mc_results/`` directory; filenames already encode the timeframe, e.g.
+``mc_D_all_pairs_YYYYMMDD_HHMM.json`` vs ``mc_W_all_pairs_YYYYMMDD_HHMM.json``.
 """
 
 import os
@@ -21,7 +26,6 @@ import pandas as pd
 import yfinance as yf
 
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 from pathlib import Path
 
 
@@ -86,22 +90,24 @@ MAX_HISTORY_FILES = mc_config.get("max_history_files", 100)
 # ==========================================
 
 parser = argparse.ArgumentParser(
-    description="FX Monte Carlo Engine",
+    description="FX Monte Carlo Engine (default timeframe: D — Daily)",
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog="""Examples:
-  python fx_monte_carlo.py D
-  python fx_monte_carlo.py W
-  python fx_monte_carlo.py -d
-  python fx_monte_carlo.py -w
+  python fx_monte_carlo.py            # default: D (Daily)
+  python fx_monte_carlo.py D          # Daily
+  python fx_monte_carlo.py W          # Weekly
+  python fx_monte_carlo.py -d         # Daily
+  python fx_monte_carlo.py -w         # Weekly
 """,
 )
 
-tf_group = parser.add_argument_group("Timeframe Selection (Required)")
+tf_group = parser.add_argument_group("Timeframe Selection (default: D)")
 tf_group.add_argument(
     "timeframe_pos",
     nargs="?",
+    default="D",
     choices=["D", "W", "d", "w"],
-    help="Timeframe positional argument: D (Daily) or W (Weekly)",
+    help="Timeframe: D (Daily, default) or W (Weekly)",
 )
 tf_group.add_argument(
     "-d",
@@ -118,22 +124,19 @@ tf_group.add_argument(
 
 args = parser.parse_args()
 
-# Resolve timeframe input
-TF = None
-if args.timeframe_pos:
-    TF = args.timeframe_pos.upper()
-elif args.daily:
+# Resolve timeframe input — default to D (Daily) when nothing is given
+if args.daily:
     TF = "D"
 elif args.weekly:
     TF = "W"
-
-if not TF:
-    parser.print_help()
-    sys.exit(1)
+elif args.timeframe_pos:
+    TF = args.timeframe_pos.upper()
+else:
+    TF = "D"
 
 
 # ==========================================
-# TIMEFRAME & DIRECTORY ROUTING
+# TIMEFRAME ROUTING & SINGLE RESULTS DIRECTORY
 # ==========================================
 
 TIMEFRAME_CONFIG = {
@@ -143,7 +146,6 @@ TIMEFRAME_CONFIG = {
         "lookback": DAILY_LOOKBACK,
         "forecast": DAILY_FORECAST,
         "periods_year": 252,
-        "results_dir": BASE_DIR / "mc_daily_results",
         "report_title": "FX DAILY MONTE CARLO UPDATE",
     },
     "W": {
@@ -152,34 +154,16 @@ TIMEFRAME_CONFIG = {
         "lookback": WEEKLY_LOOKBACK,
         "forecast": WEEKLY_FORECAST,
         "periods_year": 52,
-        "results_dir": BASE_DIR / "mc_weekly_results",
         "report_title": "FX WEEKLY MONTE CARLO UPDATE",
     },
 }
 
 TF_CFG = TIMEFRAME_CONFIG[TF]
-RESULTS_DIR = TF_CFG["results_dir"]
+
+# All timeframes share one directory. The filename already encodes the
+# timeframe (mc_D_*/mc_W_*), so results no longer need separate folders.
+RESULTS_DIR = BASE_DIR / "mc_results"
 RESULTS_DIR.mkdir(exist_ok=True, parents=True)
-
-
-# ==========================================
-# 🛡️ MARKET STATUS
-# ==========================================
-
-def forex_market_closed():
-    now = datetime.now(ZoneInfo("Europe/London"))
-    wd = now.weekday()
-    return (
-        wd == 5
-        or (wd == 6 and now.hour < 21)
-        or (wd == 4 and now.hour >= 21)
-    )
-
-
-if forex_market_closed():
-    msg = f"⏸️ FX {TF} MC: Market closed — skipped"
-    print(msg)
-    raise SystemExit(0)
 
 
 # ==========================================
