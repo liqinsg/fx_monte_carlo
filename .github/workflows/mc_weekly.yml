@@ -38,5 +38,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add mc_weekly_results/ api/
+          git add mc_results/ api/
           git diff --cached --quiet || (git commit -m "MC: weekly forecast $(date -u +%Y-%m-%d) [skip ci]" && git pull --rebase && git push)
