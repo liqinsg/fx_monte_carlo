@@ -1,12 +1,12 @@
 {
   "timeframe": "D",
   "pair": "AUDNZD",
-  "current_price": 1.24099,
-  "ann_drift_pct": 4.19,
+  "current_price": 1.24081,
+  "ann_drift_pct": 4.15,
   "ann_vol_pct": 5.25,
   "range_90": [
-    1.22713,
-    1.2566
+    1.22695,
+    1.2564
   ],
   "percentile_rank": 46.3,
   "p_up": 53.7,
@@ -17,11 +17,11 @@
   "touch_lower_pct": 6.9,
   "var_95": -0.0112,
   "cvar_95": -0.0145,
-  "expected_price": 1.24186,
+  "expected_price": 1.24167,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-09-16T01:37:33.155848+00:00",
+  "generated_utc": "2026-09-16T02:00:41.737202+00:00",
   "date": "2026-09-16"
 }
