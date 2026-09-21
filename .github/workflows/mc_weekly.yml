@@ -2,7 +2,13 @@ name: FX Monte Carlo Weekly
 
 on:
   schedule:
-    - cron: '0 0 * * 1'
+    # Offset from :00 to avoid the 00:00 UTC congestion window that can
+    # cause GitHub to silently drop scheduled runs (same time as mc_daily.yml).
+    - cron: '17 0 * * 1'
+    # Backup trigger a few hours later in case the primary run gets dropped
+    # (GitHub gives no delivery guarantee for scheduled workflows). Skips
+    # committing if this week's forecast was already generated.
+    - cron: '30 6 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -28,10 +34,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Check if today's weekly forecast already exists
+        id: guard
+        run: |
+          if ls mc_results/mc_W_all_pairs_$(date -u +%Y%m%d)_*.json >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run FX Monte Carlo
+        if: steps.guard.outputs.skip == 'false'
         run: python fx_monte_carlo.py W
 
       - name: Build API outputs
+        if: steps.guard.outputs.skip == 'false'
         run: python build_api.py
 
       - name: Commit generated files
