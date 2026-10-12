@@ -1,0 +1,27 @@
+{
+  "timeframe": "W",
+  "pair": "USDCAD",
+  "current_price": 1.4257,
+  "ann_drift_pct": 1.61,
+  "ann_vol_pct": 30.19,
+  "range_90": [
+    1.22085,
+    1.64843
+  ],
+  "percentile_rank": 51.7,
+  "p_up": 48.3,
+  "p_down": 51.7,
+  "p_up_pct": 48.3,
+  "p_down_pct": 51.7,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.1437,
+  "cvar_95": -0.1791,
+  "expected_price": 1.42531,
+  "regime": "\u23f3 W CONSOLIDATION RANGE",
+  "lookback": 104,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-12T15:51:35.864496+00:00",
+  "date": "2026-10-12"
+}

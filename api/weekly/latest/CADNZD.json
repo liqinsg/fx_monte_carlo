@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "CADNZD",
-  "current_price": 1.25119,
-  "ann_drift_pct": 3.51,
-  "ann_vol_pct": 7.03,
+  "current_price": 1.24978,
+  "ann_drift_pct": 2.31,
+  "ann_vol_pct": 6.8,
   "range_90": [
-    1.21138,
-    1.29916
+    1.21004,
+    1.29474
   ],
-  "percentile_rank": 44.6,
-  "p_up": 55.4,
-  "p_down": 44.6,
-  "p_up_pct": 55.4,
-  "p_down_pct": 44.6,
-  "touch_upper_pct": 6.0,
-  "touch_lower_pct": 7.1,
+  "percentile_rank": 46.7,
+  "p_up": 53.3,
+  "p_down": 46.7,
+  "p_up_pct": 53.3,
+  "p_down_pct": 46.7,
+  "touch_upper_pct": 6.1,
+  "touch_lower_pct": 6.9,
   "var_95": -0.0318,
-  "cvar_95": -0.0415,
-  "expected_price": 1.25492,
+  "cvar_95": -0.0411,
+  "expected_price": 1.25207,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-09-21T02:35:27.502634+00:00",
-  "date": "2026-09-21"
+  "generated_utc": "2026-10-12T15:51:34.689910+00:00",
+  "date": "2026-10-12"
 }

@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "GBPUSD",
-  "current_price": 1.339,
-  "ann_drift_pct": 0.07,
-  "ann_vol_pct": 7.07,
+  "current_price": 1.3243,
+  "ann_drift_pct": 0.75,
+  "ann_vol_pct": 6.97,
   "range_90": [
-    1.29189,
-    1.38595
+    1.27916,
+    1.371
   ],
-  "percentile_rank": 51.0,
-  "p_up": 49.0,
-  "p_down": 51.0,
-  "p_up_pct": 49.0,
-  "p_down_pct": 51.0,
+  "percentile_rank": 49.7,
+  "p_up": 50.3,
+  "p_down": 49.7,
+  "p_up_pct": 50.3,
+  "p_down_pct": 49.7,
   "touch_upper_pct": 6.2,
-  "touch_lower_pct": 6.6,
-  "var_95": -0.0352,
-  "cvar_95": -0.0448,
-  "expected_price": 1.33855,
+  "touch_lower_pct": 6.7,
+  "var_95": -0.0341,
+  "cvar_95": -0.0436,
+  "expected_price": 1.32472,
   "regime": "\u23f3 W CONSOLIDATION RANGE",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-09-21T02:35:28.235837+00:00",
-  "date": "2026-09-21"
+  "generated_utc": "2026-10-12T15:51:35.682083+00:00",
+  "date": "2026-10-12"
 }

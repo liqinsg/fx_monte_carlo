@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "NZDUSD",
-  "current_price": 0.5764,
-  "ann_drift_pct": -4.84,
-  "ann_vol_pct": 21.87,
+  "current_price": 0.5609,
+  "ann_drift_pct": -4.02,
+  "ann_vol_pct": 21.81,
   "range_90": [
-    0.51262,
-    0.63718
+    0.49939,
+    0.62035
   ],
-  "percentile_rank": 54.8,
-  "p_up": 45.2,
-  "p_down": 54.8,
-  "p_up_pct": 45.2,
-  "p_down_pct": 54.8,
-  "touch_upper_pct": 6.5,
+  "percentile_rank": 54.3,
+  "p_up": 45.7,
+  "p_down": 54.3,
+  "p_up_pct": 45.7,
+  "p_down_pct": 54.3,
+  "touch_upper_pct": 6.4,
   "touch_lower_pct": 6.4,
-  "var_95": -0.1107,
-  "cvar_95": -0.1376,
-  "expected_price": 0.57298,
+  "var_95": -0.1097,
+  "cvar_95": -0.1366,
+  "expected_price": 0.55802,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-09-21T02:35:28.330327+00:00",
-  "date": "2026-09-21"
+  "generated_utc": "2026-10-12T15:51:35.775948+00:00",
+  "date": "2026-10-12"
 }

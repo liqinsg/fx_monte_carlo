@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "AUDCAD",
-  "current_price": 0.9978,
-  "ann_drift_pct": 3.34,
+  "current_price": 0.9959,
+  "ann_drift_pct": 3.67,
   "ann_vol_pct": 6.56,
   "range_90": [
-    0.96822,
-    1.03351
+    0.96668,
+    1.03189
   ],
-  "percentile_rank": 44.4,
-  "p_up": 55.6,
-  "p_down": 44.4,
-  "p_up_pct": 55.6,
-  "p_down_pct": 44.4,
+  "percentile_rank": 43.7,
+  "p_up": 56.3,
+  "p_down": 43.7,
+  "p_up_pct": 56.3,
+  "p_down_pct": 43.7,
   "touch_upper_pct": 6.0,
   "touch_lower_pct": 7.1,
-  "var_95": -0.0296,
-  "cvar_95": -0.0387,
-  "expected_price": 1.00063,
+  "var_95": -0.0293,
+  "cvar_95": -0.0384,
+  "expected_price": 0.99905,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-09-21T02:35:28.091449+00:00",
-  "date": "2026-09-21"
+  "generated_utc": "2026-10-12T15:51:35.491920+00:00",
+  "date": "2026-10-12"
 }
