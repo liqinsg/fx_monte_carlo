@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "AUDJPY",
+  "current_price": 110.154,
+  "ann_drift_pct": -6.59,
+  "ann_vol_pct": 7.38,
+  "range_90": [
+    108.159,
+    111.827
+  ],
+  "percentile_rank": 55.8,
+  "p_up": 44.2,
+  "p_down": 55.8,
+  "p_up_pct": 44.2,
+  "p_down_pct": 55.8,
+  "touch_upper_pct": 6.6,
+  "touch_lower_pct": 6.4,
+  "var_95": -0.0181,
+  "cvar_95": -0.0228,
+  "expected_price": 109.989,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-13T04:12:28.534778+00:00",
+  "date": "2026-10-13"
+}

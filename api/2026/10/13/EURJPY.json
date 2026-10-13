@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "EURJPY",
+  "current_price": 176.818,
+  "ann_drift_pct": -12.27,
+  "ann_vol_pct": 6.91,
+  "range_90": [
+    173.608,
+    179.115
+  ],
+  "percentile_rank": 60.6,
+  "p_up": 39.4,
+  "p_down": 60.6,
+  "p_up_pct": 39.4,
+  "p_down_pct": 60.6,
+  "touch_upper_pct": 6.9,
+  "touch_lower_pct": 6.1,
+  "var_95": -0.0182,
+  "cvar_95": -0.0225,
+  "expected_price": 176.357,
+  "regime": "\u26a1 D STRONG MOMENTUM",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-13T04:12:28.131609+00:00",
+  "date": "2026-10-13"
+}
