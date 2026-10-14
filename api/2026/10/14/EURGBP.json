@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "EURGBP",
+  "current_price": 0.84464,
+  "ann_drift_pct": -6.12,
+  "ann_vol_pct": 2.93,
+  "range_90": [
+    0.83797,
+    0.84912
+  ],
+  "percentile_rank": 62.4,
+  "p_up": 37.6,
+  "p_down": 62.4,
+  "p_up_pct": 37.6,
+  "p_down_pct": 62.4,
+  "touch_upper_pct": 7.0,
+  "touch_lower_pct": 6.0,
+  "var_95": -0.0079,
+  "cvar_95": -0.0098,
+  "expected_price": 0.84355,
+  "regime": "\u26a1 D STRONG MOMENTUM",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-14T02:25:13.341734+00:00",
+  "date": "2026-10-14"
+}

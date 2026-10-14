@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "CADCHF",
-  "current_price": 0.58393,
-  "ann_drift_pct": 5.95,
-  "ann_vol_pct": 5.03,
+  "current_price": 0.5858,
+  "ann_drift_pct": 6.01,
+  "ann_vol_pct": 5.14,
   "range_90": [
-    0.5779,
-    0.5912
+    0.57962,
+    0.59324
   ],
-  "percentile_rank": 43.7,
-  "p_up": 56.3,
-  "p_down": 43.7,
-  "p_up_pct": 56.3,
-  "p_down_pct": 43.7,
+  "percentile_rank": 43.8,
+  "p_up": 56.2,
+  "p_down": 43.8,
+  "p_up_pct": 56.2,
+  "p_down_pct": 43.8,
   "touch_upper_pct": 6.0,
   "touch_lower_pct": 7.1,
-  "var_95": -0.0103,
-  "cvar_95": -0.0136,
-  "expected_price": 0.58455,
+  "var_95": -0.0106,
+  "cvar_95": -0.0139,
+  "expected_price": 0.58642,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-13T04:12:31.082709+00:00",
-  "date": "2026-10-13"
+  "generated_utc": "2026-10-14T02:25:15.053639+00:00",
+  "date": "2026-10-14"
 }
