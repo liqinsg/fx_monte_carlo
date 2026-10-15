@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "NZDCHF",
+  "current_price": 0.46555,
+  "ann_drift_pct": 1.19,
+  "ann_vol_pct": 5.32,
+  "range_90": [
+    0.46,
+    0.4712
+  ],
+  "percentile_rank": 49.5,
+  "p_up": 50.5,
+  "p_down": 49.5,
+  "p_up_pct": 50.5,
+  "p_down_pct": 49.5,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.7,
+  "var_95": -0.0119,
+  "cvar_95": -0.0153,
+  "expected_price": 0.4656,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-15T02:06:28.096787+00:00",
+  "date": "2026-10-15"
+}
