@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "EURGBP",
-  "current_price": 0.84705,
-  "ann_drift_pct": -5.25,
-  "ann_vol_pct": 2.96,
+  "current_price": 0.84467,
+  "ann_drift_pct": -5.98,
+  "ann_vol_pct": 2.95,
   "range_90": [
-    0.84043,
-    0.85177
+    0.83797,
+    0.84923
   ],
-  "percentile_rank": 60.5,
-  "p_up": 39.5,
-  "p_down": 60.5,
-  "p_up_pct": 39.5,
-  "p_down_pct": 60.5,
-  "touch_upper_pct": 6.9,
+  "percentile_rank": 62.0,
+  "p_up": 38.0,
+  "p_down": 62.0,
+  "p_up_pct": 38.0,
+  "p_down_pct": 62.0,
+  "touch_upper_pct": 7.0,
   "touch_lower_pct": 6.1,
-  "var_95": -0.0078,
-  "cvar_95": -0.0097,
-  "expected_price": 0.8461,
+  "var_95": -0.0079,
+  "cvar_95": -0.0098,
+  "expected_price": 0.84361,
   "regime": "\u26a1 D STRONG MOMENTUM",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-15T02:06:26.641642+00:00",
-  "date": "2026-10-15"
+  "generated_utc": "2026-10-16T01:56:33.539582+00:00",
+  "date": "2026-10-16"
 }
