@@ -1,12 +1,12 @@
 {
   "timeframe": "D",
   "pair": "GBPAUD",
-  "current_price": 1.9169,
-  "ann_drift_pct": 2.37,
-  "ann_vol_pct": 5.28,
+  "current_price": 1.9125,
+  "ann_drift_pct": 2.33,
+  "ann_vol_pct": 5.33,
   "range_90": [
-    1.89471,
-    1.94041
+    1.8901,
+    1.93618
   ],
   "percentile_rank": 48.2,
   "p_up": 51.8,
@@ -15,13 +15,13 @@
   "p_down_pct": 48.2,
   "touch_upper_pct": 6.1,
   "touch_lower_pct": 6.8,
-  "var_95": -0.0116,
-  "cvar_95": -0.015,
-  "expected_price": 1.91754,
+  "var_95": -0.0117,
+  "cvar_95": -0.0151,
+  "expected_price": 1.91312,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-16T01:56:35.151295+00:00",
-  "date": "2026-10-16"
+  "generated_utc": "2026-10-19T02:06:29.819537+00:00",
+  "date": "2026-10-19"
 }
