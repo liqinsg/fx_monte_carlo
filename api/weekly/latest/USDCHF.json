@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "USDCHF",
-  "current_price": 0.82944,
-  "ann_drift_pct": -2.11,
+  "current_price": 0.82571,
+  "ann_drift_pct": -2.44,
   "ann_vol_pct": 8.33,
   "range_90": [
-    0.79344,
-    0.86196
+    0.78961,
+    0.85782
   ],
-  "percentile_rank": 54.3,
-  "p_up": 45.7,
-  "p_down": 54.3,
-  "p_up_pct": 45.7,
-  "p_down_pct": 54.3,
-  "touch_upper_pct": 6.4,
+  "percentile_rank": 54.8,
+  "p_up": 45.2,
+  "p_down": 54.8,
+  "p_up_pct": 45.2,
+  "p_down_pct": 54.8,
+  "touch_upper_pct": 6.5,
   "touch_lower_pct": 6.4,
-  "var_95": -0.0434,
-  "cvar_95": -0.0547,
-  "expected_price": 0.82736,
+  "var_95": -0.0437,
+  "cvar_95": -0.055,
+  "expected_price": 0.82338,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-12T15:51:35.982451+00:00",
-  "date": "2026-10-12"
+  "generated_utc": "2026-10-19T04:43:21.983934+00:00",
+  "date": "2026-10-19"
 }

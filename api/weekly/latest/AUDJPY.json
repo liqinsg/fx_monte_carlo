@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "AUDJPY",
-  "current_price": 110.543,
-  "ann_drift_pct": 4.89,
-  "ann_vol_pct": 10.29,
+  "current_price": 109.865,
+  "ann_drift_pct": 4.44,
+  "ann_vol_pct": 10.31,
   "range_90": [
-    105.391,
-    116.754
+    104.693,
+    115.994
   ],
-  "percentile_rank": 45.1,
-  "p_up": 54.9,
-  "p_down": 45.1,
-  "p_up_pct": 54.9,
-  "p_down_pct": 45.1,
+  "percentile_rank": 45.6,
+  "p_up": 54.4,
+  "p_down": 45.6,
+  "p_up_pct": 54.4,
+  "p_down_pct": 45.6,
   "touch_upper_pct": 6.0,
   "touch_lower_pct": 7.0,
-  "var_95": -0.0466,
-  "cvar_95": -0.0605,
-  "expected_price": 110.999,
+  "var_95": -0.0471,
+  "cvar_95": -0.0609,
+  "expected_price": 110.27,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-12T15:51:31.783623+00:00",
-  "date": "2026-10-12"
+  "generated_utc": "2026-10-19T04:43:15.032222+00:00",
+  "date": "2026-10-19"
 }

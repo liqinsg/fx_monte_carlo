@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "AUDUSD",
-  "current_price": 0.6968,
-  "ann_drift_pct": 1.93,
-  "ann_vol_pct": 8.49,
+  "current_price": 0.6966,
+  "ann_drift_pct": 2.44,
+  "ann_vol_pct": 8.46,
   "range_90": [
-    0.66858,
-    0.72752
+    0.66884,
+    0.72755
   ],
-  "percentile_rank": 48.2,
-  "p_up": 51.8,
-  "p_down": 48.2,
-  "p_up_pct": 51.8,
-  "p_down_pct": 48.2,
+  "percentile_rank": 47.5,
+  "p_up": 52.5,
+  "p_down": 47.5,
+  "p_up_pct": 52.5,
+  "p_down_pct": 47.5,
   "touch_upper_pct": 6.1,
   "touch_lower_pct": 6.8,
-  "var_95": -0.0405,
-  "cvar_95": -0.052,
-  "expected_price": 0.69775,
-  "regime": "\u23f3 W CONSOLIDATION RANGE",
+  "var_95": -0.0398,
+  "cvar_95": -0.0513,
+  "expected_price": 0.6979,
+  "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-12T15:51:29.810933+00:00",
-  "date": "2026-10-12"
+  "generated_utc": "2026-10-19T04:43:12.533267+00:00",
+  "date": "2026-10-19"
 }

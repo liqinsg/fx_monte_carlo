@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "USDCAD",
-  "current_price": 1.4257,
-  "ann_drift_pct": 1.61,
+  "current_price": 1.4155,
+  "ann_drift_pct": 0.95,
   "ann_vol_pct": 30.19,
   "range_90": [
-    1.22085,
-    1.64843
+    1.21134,
+    1.63562
   ],
-  "percentile_rank": 51.7,
-  "p_up": 48.3,
-  "p_down": 51.7,
-  "p_up_pct": 48.3,
-  "p_down_pct": 51.7,
+  "percentile_rank": 52.0,
+  "p_up": 48.0,
+  "p_down": 52.0,
+  "p_up_pct": 48.0,
+  "p_down_pct": 52.0,
   "touch_upper_pct": 6.2,
   "touch_lower_pct": 6.5,
-  "var_95": -0.1437,
-  "cvar_95": -0.1791,
-  "expected_price": 1.42531,
-  "regime": "\u23f3 W CONSOLIDATION RANGE",
+  "var_95": -0.1442,
+  "cvar_95": -0.1796,
+  "expected_price": 1.41422,
+  "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-12T15:51:35.864496+00:00",
-  "date": "2026-10-12"
+  "generated_utc": "2026-10-19T04:43:21.815164+00:00",
+  "date": "2026-10-19"
 }
