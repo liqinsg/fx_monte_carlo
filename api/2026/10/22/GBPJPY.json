@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "GBPJPY",
+  "current_price": 211.541,
+  "ann_drift_pct": -1.85,
+  "ann_vol_pct": 7.25,
+  "range_90": [
+    207.969,
+    214.893
+  ],
+  "percentile_rank": 52.1,
+  "p_up": 47.9,
+  "p_down": 52.1,
+  "p_up_pct": 47.9,
+  "p_down_pct": 52.1,
+  "touch_upper_pct": 6.3,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0169,
+  "cvar_95": -0.0215,
+  "expected_price": 211.424,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-22T02:10:28.656794+00:00",
+  "date": "2026-10-22"
+}

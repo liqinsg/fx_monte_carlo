@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "EURCHF",
+  "current_price": 0.92586,
+  "ann_drift_pct": 1.1,
+  "ann_vol_pct": 4.3,
+  "range_90": [
+    0.91698,
+    0.93495
+  ],
+  "percentile_rank": 49.2,
+  "p_up": 50.8,
+  "p_down": 49.2,
+  "p_up_pct": 50.8,
+  "p_down_pct": 49.2,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.7,
+  "var_95": -0.0096,
+  "cvar_95": -0.0124,
+  "expected_price": 0.92596,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-22T02:10:29.983522+00:00",
+  "date": "2026-10-22"
+}
