@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "AUDCAD",
+  "current_price": 0.98212,
+  "ann_drift_pct": -3.0,
+  "ann_vol_pct": 5.53,
+  "range_90": [
+    0.96914,
+    0.99367
+  ],
+  "percentile_rank": 53.8,
+  "p_up": 46.2,
+  "p_down": 53.8,
+  "p_up_pct": 46.2,
+  "p_down_pct": 53.8,
+  "touch_upper_pct": 6.4,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0132,
+  "cvar_95": -0.0168,
+  "expected_price": 0.9814,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-23T02:16:18.079290+00:00",
+  "date": "2026-10-23"
+}

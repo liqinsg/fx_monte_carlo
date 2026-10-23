@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "USDJPY",
+  "current_price": 156.865,
+  "ann_drift_pct": -8.13,
+  "ann_vol_pct": 7.92,
+  "range_90": [
+    153.785,
+    159.39
+  ],
+  "percentile_rank": 56.5,
+  "p_up": 43.5,
+  "p_down": 56.5,
+  "p_up_pct": 43.5,
+  "p_down_pct": 56.5,
+  "touch_upper_pct": 6.6,
+  "touch_lower_pct": 6.3,
+  "var_95": -0.0196,
+  "cvar_95": -0.0247,
+  "expected_price": 156.58,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-23T02:16:19.102957+00:00",
+  "date": "2026-10-23"
+}

@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "CHFNZD",
+  "current_price": 2.141,
+  "ann_drift_pct": -2.21,
+  "ann_vol_pct": 5.41,
+  "range_90": [
+    2.11363,
+    2.16595
+  ],
+  "percentile_rank": 53.0,
+  "p_up": 47.0,
+  "p_down": 53.0,
+  "p_up_pct": 47.0,
+  "p_down_pct": 53.0,
+  "touch_upper_pct": 6.4,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0128,
+  "cvar_95": -0.0162,
+  "expected_price": 2.13977,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-23T02:16:17.168352+00:00",
+  "date": "2026-10-23"
+}

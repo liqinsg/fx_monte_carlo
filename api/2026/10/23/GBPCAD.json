@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "GBPCAD",
+  "current_price": 1.87606,
+  "ann_drift_pct": 0.65,
+  "ann_vol_pct": 4.31,
+  "range_90": [
+    1.85781,
+    1.89438
+  ],
+  "percentile_rank": 49.9,
+  "p_up": 50.1,
+  "p_down": 49.9,
+  "p_up_pct": 50.1,
+  "p_down_pct": 49.9,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.6,
+  "var_95": -0.0097,
+  "cvar_95": -0.0125,
+  "expected_price": 1.8761,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-23T02:16:17.444489+00:00",
+  "date": "2026-10-23"
+}
