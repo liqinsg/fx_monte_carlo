@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "GBPNZD",
-  "current_price": 2.35417,
-  "ann_drift_pct": 4.17,
+  "current_price": 2.34692,
+  "ann_drift_pct": 4.06,
   "ann_vol_pct": 5.9,
   "range_90": [
-    2.29396,
-    2.43254
+    2.28657,
+    2.42489
   ],
-  "percentile_rank": 41.6,
-  "p_up": 58.4,
-  "p_down": 41.6,
-  "p_up_pct": 58.4,
-  "p_down_pct": 41.6,
+  "percentile_rank": 41.9,
+  "p_up": 58.1,
+  "p_down": 41.9,
+  "p_up_pct": 58.1,
+  "p_down_pct": 41.9,
   "touch_upper_pct": 6.0,
   "touch_lower_pct": 7.2,
-  "var_95": -0.0256,
-  "cvar_95": -0.0337,
-  "expected_price": 2.36283,
+  "var_95": -0.0257,
+  "cvar_95": -0.0339,
+  "expected_price": 2.35531,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-19T04:43:18.684007+00:00",
-  "date": "2026-10-19"
+  "generated_utc": "2026-10-26T04:49:59.607383+00:00",
+  "date": "2026-10-26"
 }
