@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "EURAUD",
-  "current_price": 1.59866,
-  "ann_drift_pct": -6.68,
-  "ann_vol_pct": 4.94,
+  "current_price": 1.59641,
+  "ann_drift_pct": -6.53,
+  "ann_vol_pct": 4.93,
   "range_90": [
-    1.57854,
-    1.61416
+    1.57638,
+    1.61192
   ],
   "percentile_rank": 58.2,
   "p_up": 41.8,
   "p_down": 58.2,
   "p_up_pct": 41.8,
   "p_down_pct": 58.2,
-  "touch_upper_pct": 6.8,
+  "touch_upper_pct": 6.7,
   "touch_lower_pct": 6.2,
-  "var_95": -0.0126,
-  "cvar_95": -0.0158,
-  "expected_price": 1.59634,
+  "var_95": -0.0125,
+  "cvar_95": -0.0157,
+  "expected_price": 1.59414,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-23T02:16:15.838093+00:00",
-  "date": "2026-10-23"
+  "generated_utc": "2026-10-26T02:02:25.581984+00:00",
+  "date": "2026-10-26"
 }
