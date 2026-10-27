@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "GBPJPY",
-  "current_price": 209.864,
-  "ann_drift_pct": -5.56,
+  "current_price": 210.345,
+  "ann_drift_pct": -3.95,
   "ann_vol_pct": 7.39,
   "range_90": [
-    206.101,
-    213.1
+    206.641,
+    213.655
   ],
-  "percentile_rank": 55.0,
-  "p_up": 45.0,
-  "p_down": 55.0,
-  "p_up_pct": 45.0,
-  "p_down_pct": 55.0,
-  "touch_upper_pct": 6.5,
-  "touch_lower_pct": 6.4,
-  "var_95": -0.0179,
-  "cvar_95": -0.0226,
-  "expected_price": 209.593,
+  "percentile_rank": 53.8,
+  "p_up": 46.2,
+  "p_down": 53.8,
+  "p_up_pct": 46.2,
+  "p_down_pct": 53.8,
+  "touch_upper_pct": 6.4,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0176,
+  "cvar_95": -0.0223,
+  "expected_price": 210.14,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-26T02:02:24.333768+00:00",
-  "date": "2026-10-26"
+  "generated_utc": "2026-10-27T02:39:59.525114+00:00",
+  "date": "2026-10-27"
 }
