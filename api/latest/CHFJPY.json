@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "CHFJPY",
-  "current_price": 190.463,
-  "ann_drift_pct": -13.21,
-  "ann_vol_pct": 7.33,
+  "current_price": 190.308,
+  "ann_drift_pct": -12.69,
+  "ann_vol_pct": 7.32,
   "range_90": [
-    186.792,
-    193.079
+    186.663,
+    192.938
   ],
-  "percentile_rank": 60.8,
-  "p_up": 39.2,
-  "p_down": 60.8,
-  "p_up_pct": 39.2,
-  "p_down_pct": 60.8,
+  "percentile_rank": 60.4,
+  "p_up": 39.6,
+  "p_down": 60.4,
+  "p_up_pct": 39.6,
+  "p_down_pct": 60.4,
   "touch_upper_pct": 6.9,
   "touch_lower_pct": 6.1,
-  "var_95": -0.0193,
-  "cvar_95": -0.0239,
-  "expected_price": 189.929,
+  "var_95": -0.0192,
+  "cvar_95": -0.0238,
+  "expected_price": 189.794,
   "regime": "\u26a1 D STRONG MOMENTUM",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-27T02:39:59.995500+00:00",
-  "date": "2026-10-27"
+  "generated_utc": "2026-10-28T02:48:44.904156+00:00",
+  "date": "2026-10-28"
 }
