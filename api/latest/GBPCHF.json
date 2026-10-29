@@ -1,12 +1,12 @@
 {
   "timeframe": "D",
   "pair": "GBPCHF",
-  "current_price": 1.10357,
-  "ann_drift_pct": 8.85,
-  "ann_vol_pct": 4.73,
+  "current_price": 1.10322,
+  "ann_drift_pct": 8.92,
+  "ann_vol_pct": 4.74,
   "range_90": [
-    1.09356,
-    1.1172
+    1.09322,
+    1.11687
   ],
   "percentile_rank": 39.3,
   "p_up": 60.7,
@@ -17,11 +17,11 @@
   "touch_lower_pct": 7.3,
   "var_95": -0.0091,
   "cvar_95": -0.0121,
-  "expected_price": 1.10538,
+  "expected_price": 1.10504,
   "regime": "\u26a1 D STRONG MOMENTUM",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-28T02:48:46.593783+00:00",
-  "date": "2026-10-28"
+  "generated_utc": "2026-10-29T03:10:37.203229+00:00",
+  "date": "2026-10-29"
 }

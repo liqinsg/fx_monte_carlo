@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "NZDCHF",
-  "current_price": 0.46554,
-  "ann_drift_pct": 4.29,
-  "ann_vol_pct": 5.81,
+  "current_price": 0.46528,
+  "ann_drift_pct": 4.87,
+  "ann_vol_pct": 5.78,
   "range_90": [
-    0.45976,
-    0.47199
+    0.45958,
+    0.47175
   ],
-  "percentile_rank": 46.6,
-  "p_up": 53.4,
-  "p_down": 46.6,
-  "p_up_pct": 53.4,
-  "p_down_pct": 46.6,
+  "percentile_rank": 45.9,
+  "p_up": 54.1,
+  "p_down": 45.9,
+  "p_up_pct": 54.1,
+  "p_down_pct": 45.9,
   "touch_upper_pct": 6.0,
   "touch_lower_pct": 6.9,
-  "var_95": -0.0124,
-  "cvar_95": -0.0161,
-  "expected_price": 0.46587,
+  "var_95": -0.0122,
+  "cvar_95": -0.0159,
+  "expected_price": 0.46566,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-28T02:48:46.433548+00:00",
-  "date": "2026-10-28"
+  "generated_utc": "2026-10-29T03:10:36.894571+00:00",
+  "date": "2026-10-29"
 }

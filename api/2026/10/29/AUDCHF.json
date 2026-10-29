@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "AUDCHF",
+  "current_price": 0.58403,
+  "ann_drift_pct": 12.24,
+  "ann_vol_pct": 6.03,
+  "range_90": [
+    0.57739,
+    0.59335
+  ],
+  "percentile_rank": 38.5,
+  "p_up": 61.5,
+  "p_down": 38.5,
+  "p_up_pct": 61.5,
+  "p_down_pct": 38.5,
+  "touch_upper_pct": 5.9,
+  "touch_lower_pct": 7.4,
+  "var_95": -0.0114,
+  "cvar_95": -0.0152,
+  "expected_price": 0.58536,
+  "regime": "\u26a1 D STRONG MOMENTUM",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-29T03:10:36.348368+00:00",
+  "date": "2026-10-29"
+}
