@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "CHFNZD",
-  "current_price": 2.148,
-  "ann_drift_pct": -4.9,
-  "ann_vol_pct": 5.82,
+  "current_price": 2.1603,
+  "ann_drift_pct": -3.64,
+  "ann_vol_pct": 5.87,
   "range_90": [
-    2.1174,
-    2.17384
+    2.12982,
+    2.18708
   ],
-  "percentile_rank": 55.4,
-  "p_up": 44.6,
-  "p_down": 55.4,
-  "p_up_pct": 44.6,
-  "p_down_pct": 55.4,
-  "touch_upper_pct": 6.6,
+  "percentile_rank": 54.3,
+  "p_up": 45.7,
+  "p_down": 54.3,
+  "p_up_pct": 45.7,
+  "p_down_pct": 54.3,
+  "touch_upper_pct": 6.4,
   "touch_lower_pct": 6.4,
-  "var_95": -0.0142,
-  "cvar_95": -0.018,
-  "expected_price": 2.14559,
+  "var_95": -0.0141,
+  "cvar_95": -0.0179,
+  "expected_price": 2.15842,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-29T03:10:38.804704+00:00",
-  "date": "2026-10-29"
+  "generated_utc": "2026-10-30T03:14:19.290297+00:00",
+  "date": "2026-10-30"
 }

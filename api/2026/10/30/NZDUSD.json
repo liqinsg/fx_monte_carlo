@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "NZDUSD",
+  "current_price": 0.56414,
+  "ann_drift_pct": 0.04,
+  "ann_vol_pct": 6.86,
+  "range_90": [
+    0.55532,
+    0.57281
+  ],
+  "percentile_rank": 50.9,
+  "p_up": 49.1,
+  "p_down": 50.9,
+  "p_up_pct": 49.1,
+  "p_down_pct": 50.9,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.6,
+  "var_95": -0.0156,
+  "cvar_95": -0.02,
+  "expected_price": 0.56405,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-10-30T03:14:19.959368+00:00",
+  "date": "2026-10-30"
+}
