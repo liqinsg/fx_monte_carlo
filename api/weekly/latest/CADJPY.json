@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "CADJPY",
-  "current_price": 112.033,
-  "ann_drift_pct": 1.04,
-  "ann_vol_pct": 25.75,
+  "current_price": 112.862,
+  "ann_drift_pct": 1.56,
+  "ann_vol_pct": 25.76,
   "range_90": [
-    98.17,
-    126.831
+    98.944,
+    127.835
   ],
-  "percentile_rank": 51.6,
-  "p_up": 48.4,
-  "p_down": 51.6,
-  "p_up_pct": 48.4,
-  "p_down_pct": 51.6,
+  "percentile_rank": 51.4,
+  "p_up": 48.6,
+  "p_down": 51.4,
+  "p_up_pct": 48.6,
+  "p_down_pct": 51.4,
   "touch_upper_pct": 6.2,
-  "touch_lower_pct": 6.5,
-  "var_95": -0.1237,
-  "cvar_95": -0.1548,
-  "expected_price": 111.973,
+  "touch_lower_pct": 6.6,
+  "var_95": -0.1233,
+  "cvar_95": -0.1544,
+  "expected_price": 112.858,
   "regime": "\u23f3 W CONSOLIDATION RANGE",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-26T04:49:56.988642+00:00",
-  "date": "2026-10-26"
+  "generated_utc": "2026-11-02T06:08:20.990094+00:00",
+  "date": "2026-11-02"
 }

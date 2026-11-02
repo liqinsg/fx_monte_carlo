@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "EURJPY",
-  "current_price": 176.066,
-  "ann_drift_pct": 3.67,
-  "ann_vol_pct": 7.74,
+  "current_price": 176.477,
+  "ann_drift_pct": 4.09,
+  "ann_vol_pct": 7.73,
   "range_90": [
-    169.878,
-    183.465
+    170.349,
+    183.96
   ],
-  "percentile_rank": 44.9,
-  "p_up": 55.1,
-  "p_down": 44.9,
-  "p_up_pct": 55.1,
-  "p_down_pct": 44.9,
+  "percentile_rank": 44.3,
+  "p_up": 55.7,
+  "p_down": 44.3,
+  "p_up_pct": 55.7,
+  "p_down_pct": 44.3,
   "touch_upper_pct": 6.0,
-  "touch_lower_pct": 7.0,
-  "var_95": -0.0351,
-  "cvar_95": -0.0457,
-  "expected_price": 176.611,
+  "touch_lower_pct": 7.1,
+  "var_95": -0.0347,
+  "cvar_95": -0.0453,
+  "expected_price": 177.094,
   "regime": "\ud83d\udd39 W NEUTRAL",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-10-26T04:49:56.299729+00:00",
-  "date": "2026-10-26"
+  "generated_utc": "2026-11-02T06:08:20.324656+00:00",
+  "date": "2026-11-02"
 }
