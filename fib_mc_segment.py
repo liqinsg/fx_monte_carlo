@@ -11,14 +11,14 @@ For a given day:
 
 Usage:
     python3 fib_mc_segment.py 20261103
-    python3 fib_mc_segment.py 20261103 --dir /home/qili/projects/fx_monte_carlo/mc_results
+    python3 fib_mc_segment.py 20261103 --dir ~/projects/fx_monte_carlo/mc_results
 """
 import argparse
 import json
 import re
 from pathlib import Path
 
-MC_DIR = Path("/home/qili/projects/fx_monte_carlo/mc_results")
+MC_DIR = Path.home() / "projects" / "fx_monte_carlo" / "mc_results"
 
 # Fibonacci ratios: retracement/extension grid used for zone splitting
 FIB_RATIOS = [0.0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0]
