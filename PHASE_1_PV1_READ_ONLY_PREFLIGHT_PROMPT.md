@@ -5,7 +5,7 @@
 **Contract under test:** `PHASE_1_DATA_CONTRACT_v1.0.md` Revision 5a
 **Environment:** WSL development workstation, root `/home/qili/projects/fx_monte_carlo` (contract §0.2 E-1)
 **Prepared:** 2026-11-04, after the Revision 5a finalization audit
-**Authorization:** **NONE YET.** This file is a prompt specification. Executing it requires separate human approval.
+**Authorization:** **APPROVED** by the project owner on 2026-11-04 (with interpretation correction) — see §10.
 
 ---
 
@@ -13,7 +13,12 @@
 
 Contract §5.1 / §5.4 require that `last_bar_timestamp` and `data_window_*` be written **only** when the data source's semantics establish a real UTC instant. If the source yields session-date labels, affected pairs MUST fail validation.
 
-There is a concrete reason for concern rather than theoretical caution: Yahoo Finance returns bar times as Unix epochs, but the epochs are **not** universal instants — they are constructed in the exchange's local wall clock. The same raw epoch can mean different things under different interpretations. If the pipeline assumes "epoch ⇒ UTC midnight", the audit basis of every batch is wrong.
+There is a concrete reason for investigation: Yahoo Finance returns bar times as Unix epochs, and the observed UTC hour of those epochs shifts across DST. That shift has two possible explanations which must be distinguished by evidence:
+
+- **A.** the epochs are real instants placed on the exchange-local bar boundary (normal, valid, and directly usable); or
+- **B.** the values are labels with no established instant semantics (invalid for §5.1).
+
+A Unix epoch is an absolute instant by definition. A DST-related change in its UTC rendering is therefore **not** evidence of invalidity; it is expected when bars are anchored to exchange-local midnight. The preflight exists to establish which explanation the evidence supports. If the pipeline assumed "epoch ⇒ UTC midnight" without checking, the audit basis of every batch would rest on an untested assumption.
 
 **PV-1 is currently NOT VERIFIED** in E-1. This preflight exists to change that status with evidence.
 
@@ -40,7 +45,7 @@ There is a concrete reason for concern rather than theoretical caution: Yahoo Fi
 | Q-2 | For `interval="1d"`, what does the index *time-of-day* look like across a full year, and does it shift at a DST boundary? | distribution + boundary evidence |
 | Q-3 | For `interval="1wk"`, what does the index *weekday* and time-of-day look like? | distribution + evidence |
 | Q-4 | Is the underlying epoch series timezone-shifted by `meta.gmtoffset`, or is `gmtoffset` a current-day meta attribute that does not represent per-bar construction? | evidence from raw API vs library |
-| Q-5 | Does the index represent a **real UTC instant** (PV-1 PASS), or a **session-date label tied to a wall-clock day** (PV-1 FAIL for that timeframe)? | PASS / FAIL / PARTIAL per timeframe |
+| Q-5 | Does the index represent a **real instant** — (A) exchange-local bar boundary or (B) unestablished label — or (C) a library transformation that lost/changed timezone semantics? A DST-related UTC-hour change alone must not decide this. | A / B / C / NOT VERIFIED per timeframe |
 | Q-6 | What is the date of the last usable bar relative to the run date, and what does "today's bar" look like while a session is still open? | observed facts |
 | Q-7 | Are the historical E-1 artifacts attributable to an E-1 generator (provenance class L-A) or not (L-B)? | per-artifact classification evidence |
 
@@ -91,6 +96,15 @@ For each, record and compare:
   3. converted to `ZoneInfo("Europe/London")`
 - whether the three renderings agree, and for which bars they disagree
 
+The Europe/London conversion is a timezone rendering of the same
+instant, not a competing timestamp interpretation.
+
+The comparison MUST distinguish timezone conversion from
+manually adding a fixed GMT offset.
+
+meta.gmtoffset must not be assumed to represent historical
+per-bar timezone offsets.
+
 **This is the decisive comparison.** Q-4 is answered by whether the epoch series itself moves at DST, independently of what `meta` reports on the day the request was made.
 
 ### S-4 — Supplementary sampling
@@ -113,7 +127,24 @@ Do not conclude L-A/L-B from the filename rule alone (contract §5.3). Record th
 
 ## 4. Interpretation rules (do not deviate)
 
-1. **A session-date label is not an instant.** If the daily index is a wall-clock day that moves by an hour at DST, it is a day label anchored to exchange local time — never a UTC instant.
+1. A DST-related shift in the UTC rendering of a bar timestamp
+   does NOT, by itself, prove that the timestamp is a session-date
+   label rather than a real instant.
+
+   Unix epoch values represent absolute instants.
+
+   The investigation MUST distinguish:
+
+   A. A real instant corresponding to an exchange-local bar boundary.
+   B. A session-date label without established instant semantics.
+   C. A library transformation that loses or changes timezone semantics.
+
+   A timestamp may PASS PV-1 if the source documentation and
+   observed library behavior establish that it represents a real
+   instant, even when its UTC hour changes across DST.
+
+   Do not classify a timestamp as FAIL solely because its UTC
+   hour or weekday changes across DST.
 2. **Do not accept a shift if it is contradicted by the epoch series.** If `meta.gmtoffset` reports `0` but the epoch series itself shifts by an hour mid-year, `gmtoffset` does not describe per-bar construction. Report the contradiction, do not "pick one".
 3. **No normalization during preflight.** Do not convert, floor, round, or "fix" index values before reporting. Report what the source produced.
 4. **Per-timeframe verdicts.** D and W may differ; they must be reported separately. A PASS for one does not carry to the other.
@@ -142,10 +173,14 @@ The report must end with a decision table using only these values:
 
 | Verdict | Meaning for contract |
 |---------|----------------------|
-| **PASS** | Source semantics establish a real instant; §5.1 serialization is achievable for that timeframe without change. |
-| **FAIL** | Source yields session-date labels; §5.1/§7 require affected pairs to fail validation. **The pipeline would produce zero valid pairs** if §5.1 is applied literally — this is a contract-level decision, not an implementation detail. |
+| **PASS** | Source semantics establish a real instant (interpretation A or an established instant); §5.1 serialization is achievable for that timeframe without change. Applies per timeframe; D and W may both pass. |
+| **FAIL** | Source is shown to yield only date labels with no established instant semantics (interpretation B), or the library destroys timezone semantics (C). Only a demonstration of B or C supports FAIL — never a DST-related UTC-hour change. |
 | **PARTIAL** | D and W differ, or some pairs/symbols differ. State exactly which. |
 | **NOT VERIFIED** | Evidence insufficient or blocked. State what was blocked and why. |
+
+A PASS must cite positive evidence for an established instant, not merely the absence of contradictory evidence. A FAIL must show that the instant cannot be established — a different UTC hour is not that.
+
+**If FAIL: do not modify code.** Whether to revise the data contract is a human decision (§8).
 
 ---
 
@@ -175,6 +210,23 @@ Then stop. Do not proceed to Freeze or Stage B.
 
 ## 9. Status of this preflight as of preparation
 
-**NOT EXECUTED.** No environment was created, no data was fetched through the project's library path, and no verdict exists. PV-1 remains **OPEN — NOT VERIFIED**.
+**APPROVED 2026-11-04** by the project owner, with the §4 rule-1 interpretation correction: a DST-related change in the UTC rendering of an epoch does **not** by itself indicate a session-date label, and must not be classified as FAIL on that basis alone.
 
-No file in the repository was modified in preparing this prompt.
+**EXECUTION: PENDING.** Verdicts are recorded in `PHASE_1_PV1_EVIDENCE_REPORT.md`.
+
+---
+
+## 10. Owner authorization record (2026-11-04)
+
+| # | Authorized | Constraint |
+|---|-----------|------------|
+| A-1 | Proceed with PV-1 Read-only Preflight | Per this prompt |
+| A-2 | Create isolated `.venv` and install `requirements.txt` | No system-Python install; no modification of `requirements.txt`; no modification of existing Python files |
+| A-3 | Read-only data observation for D and W | No execution of `fx_monte_carlo.py`; no writes to `mc_results/` or `api/`; no scheduler |
+| A-4 | Report installation failures or unexpected `yfinance` behavior as-is | MUST NOT substitute another data source; MUST NOT self-modify production code |
+| A-5 | No Git operations | No commit, no reset |
+| A-6 | Verdict categories: PASS / PARTIAL / FAIL | FAIL does not authorize code changes; contract revision is a separate human decision |
+
+Retained state: Revision 5a remains READY FOR HUMAN FREEZE but **NOT FROZEN**; Stage B remains **UNAUTHORIZED**.
+
+Commit `f86e9b4` is **retained** (no reset). It was created without explicit commit authorization; that history is not being altered, and all future commits require explicit authorization.
