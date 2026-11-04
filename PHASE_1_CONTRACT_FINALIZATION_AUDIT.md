@@ -1,11 +1,13 @@
 # PHASE 1 — CONTRACT FINALIZATION AUDIT
 
-**Document audited:** `PHASE_1_DATA_CONTRACT_v1.0.md` (Revision 5 → **Revision 5a**, amended in place)
-**Audit date:** 2026-11-04
+**Document audited:** `PHASE_1_DATA_CONTRACT_v1.0.md` (Revision 5a → **Revision 5b**, amended in place)
+**Audit date:** 2026-11-04 (UTC)
 **Execution environment audited:** WSL development workstation, `/home/qili/projects/fx_monte_carlo`
-**Nature:** Documentation-only finalization audit. No code, config, data, workflow, or schedule was changed.
-**Status:** READY FOR HUMAN FREEZE (with one NOT VERIFIED item carried into Stage B as preflight)
+**Nature:** Documentation-only finalization audit and H-4/H-5 decision recording. No code, config, data, workflow, or schedule was changed.
+**Status:** H-4/H-5 DECIDED — ACCEPTED; CONTRACT FREEZE PENDING HUMAN REVIEW
 **Stage B authorization:** **NOT GRANTED**
+
+**Revision 5b update:** 2026-11-04 07:10 UTC. H-4 and H-5 are accepted policy decisions only. H-1, H-2, and H-3 remain open; neither Contract Freeze nor Stage B Authorization is granted.
 
 ---
 
@@ -13,16 +15,21 @@
 
 | File | Change | Type |
 |------|--------|------|
-| `PHASE_1_DATA_CONTRACT_v1.0.md` | Revision 5 amended in place to Revision 5a | Documentation |
-| `PHASE_1_CONTRACT_FINALIZATION_AUDIT.md` | This report (new) | Documentation |
+| `PHASE_1_DATA_CONTRACT_v1.0.md` | Revision 5a amended in place to Revision 5b; H-4/H-5 recorded | Documentation |
+| `PHASE_1_CONTRACT_FINALIZATION_AUDIT.md` | Updated to record H-4/H-5 and preserve open H-1/H-2/H-3 | Documentation |
+| `PHASE_1_HUMAN_DECISION_RECORD.md` | Created to preserve the accepted human decisions and non-decisions | Documentation |
 
-Verified with `git status --short`: the **only** tracked modification is `PHASE_1_DATA_CONTRACT_v1.0.md`. All other listed entries are pre-existing untracked artifacts (`mc_results/*.json`, `api/2026/...`, `api/weekly/...`) that were **not** touched. No Git commit was made.
+Initial `git status --short` showed pre-existing shell-script modifications, a PV-1 addendum backup, and two untracked helper scripts; these were left untouched. The target contract and this audit had no pre-existing worktree changes before this task. The final status is reported in the response and includes only the two requested document modifications and the new decision record in addition to those pre-existing entries. No Git commit was made.
 
 **No Revision 6 was created.** The document structure supported in-place amendment: a revision-log row was added and the revision marker in the title/version line was updated, leaving section numbering intact.
 
 ---
 
-## 2. Sections amended
+## 2. Revision 5a finalization background
+
+The original Revision 5a finalization remains recorded below as historical context. This update does not repeat or reopen its environment decision. Revision 5b adds the H-4/H-5 decision record, tightens the artifact-specific provenance condition in §5.3, and makes the accepted Legacy/v1.0 eligibility and fallback policy explicit in §8.3.
+
+## 3. Decisions incorporated in Revision 5a
 
 | § | Section | Amendment |
 |---|---------|-----------|
@@ -46,8 +53,6 @@ Verified with `git status --short`: the **only** tracked modification is `PHASE_
 
 ---
 
-## 3. Decisions incorporated
-
 1. **WSL is the Stage B target.** `/home/qili/projects/fx_monte_carlo` is designated (§0.2 E-1, §11.4 ENV-1). The prior "not yet designated" status is removed.
 2. **Cloud Ubuntu is a separate environment.** `/home/ubuntu/projects/fx_monte_carlo` is explicitly **not** the same checkout (§0.2 E-2, ENV-2). Desktop-agent instructions that `mc_results` be treated as a symlink are rejected as cloud-only.
 3. **Stage A is historical evidence.** Stage A findings do not prove WSL state and must be re-verified in E-1 before use (§0.2 E-4, ENV-3, §11.5 SB-2).
@@ -59,7 +64,7 @@ Verified with `git status --short`: the **only** tracked modification is `PHASE_
 
 ---
 
-## 4. Remaining contradictions
+## 4. Revision 5a contradiction resolutions
 
 | # | Item | Resolution |
 |---|------|-----------|
@@ -73,19 +78,19 @@ Verified with `git status --short`: the **only** tracked modification is `PHASE_
 
 ---
 
-## 5. Requirements still requiring human judgment
+## 5. Human decision status after Revision 5b
 
 | # | Item | Why human judgment is needed | Status |
 |---|------|------------------------------|--------|
-| H-1 | **Human Freeze of the contract** | Only a human may freeze the contract. Box remains unchecked (§12). | OPEN — HUMAN |
-| H-2 | **Stage B authorization** | Explicit authorization required after freeze (§12, §11.5 SB-5). | OPEN — HUMAN |
-| H-3 | **Acceptance of NOT VERIFIED item PV-1 / SB-1** — whether the configured market-data source (`yfinance`, `yf_period` 1y/5y, `yf_interval` 1d/1wk) yields index values establishing real UTC instants. | Not verifiable in E-1 without the project's Python environment (`pandas`/`yfinance` not installed; installing packages is out of scope for a documentation task). If the source yields only session-date labels, §5.1/§7 require per-pair validation failure — a large behavioral consequence the owner must accept or resolve. **NOT VERIFIED.** | OPEN — HUMAN DECISION / Stage B PREFLIGHT |
-| H-4 | **Acceptance of the L-A/L-B classification approach** for legacy artifacts | Requires confirming that attributing legacy files to committed generator versions is acceptable evidence practice. | OPEN — HUMAN |
-| H-5 | **Legacy compatibility / API fallback behavior** acceptance | Carried from Revision 5; the human Freeze box requires it. | OPEN — HUMAN |
+| H-1 | **Human Freeze of the contract** | Decision acceptance does not freeze the contract. The human Freeze box remains unchecked (§12). | **OPEN — HUMAN FREEZE NOT GRANTED** |
+| H-2 | **Stage B authorization** | Separate explicit authorization is required after Freeze (§12, §11.5 SB-5). | **OPEN — STAGE B AUTHORIZATION NOT GRANTED** |
+| H-3 | **Acceptance of NOT VERIFIED item PV-1 / SB-1** — whether the configured market-data source (`yfinance`, `yf_period` 1y/5y, `yf_interval` 1d/1wk) yields index values establishing real UTC instants. | PV-1 evidence and the weekly addendum leave material limitations: `yf.download` strips timezone in the sampled path; weekly boundary/OHLC semantics and historical-version behavior are not fully established. Pair validation must fail where a UTC instant cannot be supported. | **OPEN — PV-1 ACCEPTANCE NOT GRANTED** |
+| H-4 | **Historical legacy artifact timestamp classification** | Accept L-A/L-B dual classification only when L-A provenance ties the specific artifact to an exact UTC-generating implementation; code history alone is insufficient (§5.3, §11.6). | **DECIDED — ACCEPTED** |
+| H-5 | **Legacy eligibility and API fallback** | Accept strict filename/schema separation, class-specific eligibility, auditable rejection, and transparent fallback with existing `latest_seen`, `latest_eligible`, and published identity semantics (§8.3, §11.6). No new API behavior is authorized. | **DECIDED — ACCEPTED** |
 
 ---
 
-## 6. Consistency audit (Task C)
+## 6. Revision 5b consistency audit
 
 Confirmed **not weakened or removed**; all still present and self-consistent:
 
@@ -101,17 +106,26 @@ Confirmed **not weakened or removed**; all still present and self-consistent:
 | Historical artifact preservation (no rewrite/migration) | §9.4, §10, §8.4 | CONSISTENT |
 | Failed-batch handling (written but not ingested) | §6, §8.3, O-6 | CONSISTENT |
 | Zero-pair preflight validation | §11 Stage B boundary notes (pre-existing) | CONSISTENT — untouched |
+| H-4 artifact-specific L-A/L-B provenance | §5.3, §8.3, §11.6 | CONSISTENT — compatible code history alone does not prove artifact origin |
+| H-5 strict Legacy/v1.0 eligibility and fallback | §8.1–§8.3, §11.6 | CONSISTENT — rejection is logged; fallback remains visible; no new response fields added |
+| Non-migration / production-code boundary | §9.4, §10, task scope | CONSISTENT — unchanged |
 
 Additions are **additive and constraining** in direction (they add provenance and policy rules), except for the two stale symlink/designation clauses that were corrected to match the confirmed environment. No document item was relaxed.
 
 ---
 
-## 7. Readiness assessment
+## 7. Status and scope
 
-**Contract status: READY FOR HUMAN FREEZE.**
+**H-4: DECIDED — ACCEPTED**\
+**H-5: DECIDED — ACCEPTED**\
+**H-1: OPEN — HUMAN FREEZE NOT GRANTED**\
+**H-2: OPEN — STAGE B AUTHORIZATION NOT GRANTED**\
+**H-3: OPEN — PV-1 ACCEPTANCE NOT GRANTED**
 
-All owner-confirmed decisions are incorporated, all internal contradictions are resolved, and existing requirements are unweakened. The single technical uncertainty (H-3 / PV-1) is explicitly marked **NOT VERIFIED** and converted into a mandatory Stage B preflight (SB-1) rather than being silently assumed — satisfying the instruction not to resolve open questions through assumption.
+**Overall result: H-4/H-5 DECISION RECORDING COMPLETE — CONTRACT FREEZE PENDING HUMAN REVIEW.**
 
 **Stage B authorization: NOT GRANTED.**
 
-**No Stage B work of any kind was performed.** Documentation only.
+This audit records decision acceptance and consistency only. It does not freeze the contract, grant PV-1 acceptance, or authorize Stage B. PV-1 and weekly-semantics limitations remain visible in the cited evidence documents and the contract's §5.1/SB-1.
+
+**No Stage B or production work of any kind was performed.** Documentation only.
