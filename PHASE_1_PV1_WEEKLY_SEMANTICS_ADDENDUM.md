@@ -42,7 +42,7 @@ No yfinance library involvement. Pure Yahoo raw API response.
 | Total timestamps | 263 |
 | Boundary timestamps (Europe/London Monday 00:00) | 262 |
 | — Completed weekly bar boundaries | 261 |
-| — Current-week start boundary (2026-11-02, closes 2026-11-09) | 1 |
+| — Current-week start boundary (2026-11-02; following weekly boundary timestamp: 2026-11-09) | 1 |
 | Non-boundary observation timestamp (role not verified) | 1 |
 
 **UTC rendering of the 262 boundary timestamps:**
@@ -51,7 +51,8 @@ No yfinance library involvement. Pure Yahoo raw API response.
 |---------|-------|------|
 | Monday | 110 | 00:00 (GMT, Nov–Mar) |
 | Sunday | 152 | 23:00 (BST, Mar–Oct) |
-| Wednesday | 1 | 03:00 (non-boundary observation) |
+
+These counts total 262 boundary timestamps. One additional non-boundary observation timestamp renders as Wednesday 03:00 UTC; its role is NOT VERIFIED.
 
 **Europe/London rendering:**
 
@@ -66,7 +67,7 @@ No yfinance library involvement. Pure Yahoo raw API response.
 
 **Every single boundary timestamp (262/262) corresponds to Monday 00:00 Europe/London.** This includes 261 completed weekly bar boundaries and 1 current-week start boundary. No boundary timestamp deviates from this pattern.
 
-The UTC rendering shifts between `Monday 00:00` (GMT: Nov–Mar) and `Sunday 23:00` (BST: Mar–Oct). This is **not** evidence of two different boundary types. It is the normal, expected signature of a single fixed-instant boundary rendered in two different time zones across DST transitions.
+The UTC rendering shifts between `Monday 00:00` (GMT: Nov–Mar) and `Sunday 23:00` (BST: Mar–Oct). This is **not** evidence of two different boundary types. This is the expected signature of a recurring Europe/London Monday 00:00 local-time boundary. Its UTC representation shifts between Monday 00:00 during GMT and Sunday 23:00 during BST.
 
 The 1 Wednesday entry is **NOT** a boundary timestamp. Its functional role (whether it is a live tick, whether it participates in OHLC construction) is NOT VERIFIED.
 
@@ -86,9 +87,9 @@ Yahoo's raw meta for all three pairs:
 }
 ```
 
-Confirmed: `gmtoffset` is a static current-day attribute, **not** per-bar. The true boundary semantics are carried by the epoch series itself.
+Confirmed: `gmtoffset` is a static current-day attribute, **not** per-bar. The epoch series preserves each timestamp's absolute temporal position. The correspondence to Europe/London Monday 00:00 is directly observable in the sampled data; whether this represents the official exchange weekly boundary remains NOT VERIFIED.
 
-**WQ-1 Finding:** The raw Yahoo Weekly chart endpoint returns boundary timestamps that are **real instants corresponding to Europe/London Monday 00:00**. This pattern holds across 262/262 boundary timestamps (261 completed + 1 current-week start) with zero deviation. The non-boundary observation timestamp's role is NOT VERIFIED. The Monday 00:00 label is not an arbitrary convention — it is the consistent anchor point of every boundary timestamp in the distribution. Whether this anchor is the *actual* exchange weekly bar start requires independent exchange-spec confirmation (NOT VERIFIED).
+**WQ-1 Finding:** The raw Yahoo Weekly chart endpoint returns timestamps that are real instants. In the sampled data, all 262 boundary timestamps correspond to Europe/London Monday 00:00 (261 earlier-week starts + 1 current-week start), with zero deviation. The non-boundary observation timestamp's role is NOT VERIFIED. Whether the observed Monday 00:00 timestamps represent the official exchange weekly boundary requires independent exchange-spec confirmation (NOT VERIFIED).
 
 ---
 
@@ -118,7 +119,7 @@ if interval != interval_user:
 When calling `history(interval="1wk", repair=False)`:
 
 1. Line 264: `params["interval"] = "1wk"` — requests **1wk directly** from Yahoo.
-2. Line 293-301: Yahoo returns weekly bars — already aligned to exchange boundaries.
+2. Line 293-301: Yahoo returns weekly-interval data; the sampled timestamps are aligned to the observed Monday 00:00 Europe/London sequence. Official exchange-boundary correspondence is NOT VERIFIED.
 3. Line 647: `interval == interval_user` → `"1wk" == "1wk"` → **True** → `_resample is SKIPPED`.
 
 **Empirical verification via monkey-patching:**
@@ -225,23 +226,23 @@ Index hour: 00:00 × 53 (always local midnight)
 
 ### 4.4 What This Proves
 
-1. **`yf.download` output is exactly the naive version of `Ticker.history` output** — same bars, just tz stripped.
-2. **Both library paths match the raw Yahoo weekly boundaries perfectly** — no resampling distortion.
+1. **The sampled `yf.download` and `Ticker.history` index sequences match after converting the latter to London-local naive timestamps.** This establishes index alignment, not OHLC equivalence or the absence of all data transformations.
+2. **Both library paths match the raw Yahoo boundary timestamp sequence for the sampled run.** This establishes timestamp alignment, not OHLC equivalence or the absence of all data transformations.
 3. **The timezone information exists in `Ticker.history`** (with DST offsets visible) and is only stripped at the final layer of `yf.download`.
 
-**WQ-3 Finding:** All three paths agree. The Weekly index label IS a real instant — Europe/London Monday 00:00 — and `yf.download` merely strips the timezone representation.
+**WQ-3 Finding:** For the sampled run, the library index sequences align with the raw Yahoo boundary timestamp sequence, and `Ticker.history` retains timezone information that `yf.download` strips. This is evidence of timestamp alignment, not OHLC equivalence or the absence of all data transformations.
 
 ---
 
-## 5. WQ-4 — Partial Bar Behavior
+## 5. WQ-4 — Observed Index and OHLC Status
 
 ### 5.1 The Correction
 
-The initial WQ-4 conclusion in §5 (first edition of this addendum) stated that `yf.download()` Weekly output contains **completed weekly bars only**.
+The initial WQ-4 conclusion in §5 (first edition of this addendum) stated that `yf.download()` Weekly output contains **completed weekly bars only**. The available timestamp evidence does not establish whether the associated OHLC values are complete or stable.
 
-This was **incorrect**. Verification shows that `yf.download()` **includes the current in-progress week as its last row** whenever that week has started but not yet closed.
+The sampled run shows that `yf.download()` has the current week's start timestamp (`2026-11-02`) as its last row. This establishes the row's calendar position, but does not independently establish that its OHLC values belong to an in-progress bar or will change.
 
-The initial error rested on a simple fact misreading: the example run showed `yf.download last row: 2026-11-02` on 2026-11-04 (Wednesday). The interpretation that "Nov 2 is the most recent completed Monday boundary" missed that **Nov 2 is the START of the current week, not the previous one**. The weekly completion boundary is the following Monday (Nov 9). On any day between Nov 2 and Nov 9 inclusive, `yf.download()` will show Nov 2 as its last row — an in-progress bar.
+The initial error rested on a simple fact misreading: the example run showed `yf.download last row: 2026-11-02` on 2026-11-04 (Wednesday). **Nov 2 is the current week's start timestamp**, not the previous week's start. Under the observed weekly cadence, the following Monday is Nov 9. These calendar positions do not establish OHLC completion or stability.
 
 ### 5.2 Verification Run
 
@@ -250,7 +251,7 @@ Run time (UTC): 2026-11-04T04:31:59+00:00 (Wednesday)
 | Item | Value |
 |------|-------|
 | Current week start (Mon 00:00 GMT) | 2026-11-02 |
-| Current week end (Mon 00:00 GMT) | 2026-11-09 |
+| Following weekly boundary timestamp | 2026-11-09 00:00 Europe/London (GMT) |
 | We are INSIDE this week? | **True** |
 | yf.download last row index | **2026-11-02 00:00:00** |
 | Raw Yahoo non-boundary observation timestamp | Wednesday, current UTC instant (role NOT VERIFIED) |
@@ -262,21 +263,21 @@ The analysis must cleanly separate:
 | # | Concept | Meaning in this example |
 |---|---------|------------------------|
 | 1 | **Weekly bar start timestamp** | `2026-11-02 00:00 Europe/London (GMT)` — index label of the row |
-| 2 | **Weekly bar completion boundary** | `2026-11-09 00:00 Europe/London (GMT)` — the Monday that closes the week |
+| 2 | **Following weekly timestamp** | `2026-11-09 00:00 Europe/London (GMT)` — the next Monday timestamp under the observed weekly cadence |
 | 3 | **Non-boundary observation timestamp** | The additional timestamp appended by Yahoo (Wednesday UTC instant). Its role (live tick, price feed, or other) is NOT VERIFIED. |
-| 4 | **Latest COMPLETED weekly bar** | Index row at `2026-10-26 00:00 Europe/London` — closed on Nov 2 |
-| 5 | **Current IN-PROGRESS weekly bar** | Index row at `2026-11-02 00:00 Europe/London` — open, close price provisional |
+| 4 | **Earlier weekly-index row** | Index row at `2026-10-26 00:00 Europe/London`, preceding the current weekly period |
+| 5 | **Last weekly-index row** | Index row at `2026-11-02 00:00 Europe/London`, the current week's start timestamp |
 
-### 5.4 What yf.download Returns (Corrected)
+### 5.4 What the Observed Index Structure Indicates
 
-- **All rows except the last** correspond to **completed weekly bars**. Their OHLC values are expected to be final (NOT VERIFIED — two successive fetches have not been compared to confirm stability).
-- **The last row** corresponds to the **current in-progress week** if that week has started. Its OHLC values are **provisional and expected to update** until the bar completes at the next Monday 00:00 Europe/London (NOT VERIFIED — provisionality is inferred from the in-progress state; actual value-change has not been demonstrated across two successive fetches).
-- `yf.download()` does **not** include a row for a week that has not yet started.
-- The index timestamp for every row — completed or in-progress — is the **Monday 00:00 Europe/London start boundary** of that week.
+- Earlier rows have start timestamps preceding the current weekly period.
+- The last row has the current week's start timestamp.
+- The corresponding OHLC completion and stability status has not been independently verified.
+- The sampled index timestamps correspond to Monday 00:00 Europe/London; whether these represent official exchange boundaries remains NOT VERIFIED.
 
 ### 5.5 What RAW Yahoo Returns
 
-Yahoo appends **two classes of timestamps** to the weekly chart response:
+The sampled Yahoo weekly chart response contains **two classes of timestamps**:
 
 1. **Boundary timestamps** — Monday 00:00 Europe/London epochs for every week including the current one.
 2. **Non-boundary observation timestamp** — a single epoch representing an observation that does not fall on a Monday 00:00 Europe/London boundary. Its functional role (live tick, price feed, or other) is NOT VERIFIED.
@@ -287,24 +288,24 @@ The raw Yahoo weekly timestamps for 1y data: **54 = 53 boundary timestamps (52 c
 
 ### 5.6 Cross-Path Consistency
 
-| Path | Last row index | Last row bar status | Close value |
+| Path | Last row index | Timestamp interpretation | OHLC status |
 |------|---------------|--------------------|-------------|
-| yf.download | 2026-11-02 (Mon 00:00) | **In-progress** | **NOT VERIFIED** — provisionality inferred, not demonstrated |
-| Ticker.history | 2026-11-02 00:00+00:00 (Europe/London) | **In-progress** | **NOT VERIFIED** — same as yf.download above |
+| yf.download | 2026-11-02 (Mon 00:00) | Current week's start timestamp | **NOT VERIFIED** — completion and stability not independently verified |
+| Ticker.history | 2026-11-02 00:00+00:00 (Europe/London) | Current week's start timestamp | **NOT VERIFIED** — completion and stability not independently verified |
 | Raw Yahoo boundary at index 52 | epoch → Mon 00:00 LON | Boundary exists | **NOT VERIFIED** — boundary epoch confirmed; OHLC mapping from Yahoo response not traced |
 | Raw Yahoo non-boundary observation at index 53 | epoch → Wednesday current time | Observation present | **NOT VERIFIED** — functional role of this entry unknown |
 
-Both library paths show the same in-progress bar at the same Monday 00:00 boundary — the index alignment is directly observed. The raw Yahoo API provides both the boundary timestamp and an additional non-boundary observation timestamp. Whether the latter participates in OHLC construction is NOT VERIFIED.
+Both library paths show the same last-row timestamp at the current week's start — the index alignment is directly observed. The raw Yahoo API provides both the boundary timestamp and an additional non-boundary observation timestamp. Whether the latter participates in OHLC construction is NOT VERIFIED.
 
 ### 5.7 Why This Matters
 
-The previous conclusion ("completed bars only") was comforting but incorrect. The correct analysis has two consequences:
+The previous conclusion ("completed bars only") is not established by the available evidence. The corrected analysis has two consequences:
 
-1. The **timestamp semantics** (WQ-1 through WQ-3 conclusions) remain **unchanged and correct**. The Nov 2 row's index label IS a real instant — the Monday 00:00 start. The fact that this bar is in progress does not erase the semantic finding that the label represents a real boundary.
+1. The sampled index sequence places the Nov 2 row at the current week's start timestamp. This establishes its calendar position, not whether the associated OHLC values are complete or stable.
 
-2. The **data freshness / contract implications** change: the last row is an in-progress week, and its OHLC values are expected to be provisional (NOT VERIFIED — value-change has not been directly demonstrated but follows from the in-progress state). Any consumer that treats the last row of a Weekly yf.download DataFrame as final may be wrong. The Contract should explicitly state whether partial bars are included and how to detect them (see §3 of user's opening analysis for a proposed field structure).
+2. The **data freshness / contract implications** remain unresolved: the last row has the current week's start timestamp, but its OHLC completion and stability have not been independently verified. A consumer should not infer OHLC finality or provisionality from the index position alone.
 
-**WQ-4 Finding (Corrected):** `yf.download()` Weekly output includes the current in-progress week as its last row. Every row's timestamp IS a real Monday 00:00 Europe/London boundary instant (confirming WQ-1 through WQ-3). The last row's OHLC values are expected to be provisional until the next Monday 00:00 Europe/London, but this value-change behavior is NOT VERIFIED by successive-fetch comparison. Completed bars have final timestamps; their OHLC stability is expected but not re-verified here.
+**WQ-4 Finding (Corrected):** In the sampled run, the last `yf.download()` Weekly row has the current week's start timestamp. The sampled timestamps map to Monday 00:00 Europe/London, but official exchange-boundary correspondence and the associated OHLC completion and stability status are NOT VERIFIED.
 
 ---
 
@@ -314,18 +315,18 @@ The previous conclusion ("completed bars only") was comforting but incorrect. Th
 
 | Class | Definition | Weekly Status |
 |-------|------------|---------------|
-| **A** | Real instant corresponding to an exchange bar boundary | **LIKELY YES** — 262/262 boundary timestamps are Europe/London Monday 00:00; whether this is *the actual exchange* boundary is NOT VERIFIED |
+| **A** | Real instant corresponding to an exchange bar boundary | **NOT VERIFIED** — the raw timestamps are real instants and 262/262 sampled boundary timestamps correspond to Europe/London Monday 00:00; official exchange-boundary correspondence is NOT VERIFIED |
 | **B** | Session-date label with no established instant semantics | **NO** — this was the original misclassification, disproved by WQ-1 |
 | **C** | Library transformation that loses timezone semantics | **YES** — `yf.download` strips tz from the tz-aware `Ticker.history` output |
 | NOT VERIFIED | Insufficient evidence | — |
 
-### 6.2 Coexistence of A and C
+### 6.2 Observed Timestamp and Timezone-Loss Findings
 
 A and C are **not mutually exclusive**:
-- **A is what the data is.** The underlying epochs are real weekly boundary instants.
+- The underlying epoch values are real instants, and the sampled boundary timestamps correspond to Europe/London Monday 00:00.
 - **C is what yf.download does.** It removes the timezone representation, leaving a naive label.
 
-This is the **exact same A+C relationship** as Daily. Weekly and Daily share the same semantic structure — they differ only in the resampling code path (which Weekly does not use under default parameters).
+Weekly exhibits the same observed timezone-localization pattern as the previously investigated Daily path. This comparison does not establish that Daily and Weekly have an identical semantic structure. The default Weekly path does not use the resampling code path described above.
 
 ### 6.3 Correction of Original Report's Error
 
@@ -333,7 +334,7 @@ The original report's Weekly → B+C classification rested on a **false premise*
 - Default path (repair=False): **no resampling** — direct Yahoo `interval=1wk` fetch
 - `W-MON` resampling only occurs in repair=True mode, which the project does not use
 
-The report also misinterpreted the UTC rendering of BST-era weekly boundaries (`Sunday 23:00 UTC`) as evidence of a "different" boundary type. This is simply the same Europe/London Monday 00:00 instant rendered in UTC during British Summer Time.
+The report also misinterpreted the UTC rendering of BST-era weekly boundaries (`Sunday 23:00 UTC`) as evidence of a "different" boundary type. This is the same recurring Europe/London Monday 00:00 local-time boundary, represented as Sunday 23:00 UTC during British Summer Time.
 
 ### 6.4 Per-Pair Verification
 
@@ -355,12 +356,12 @@ Cross-pair consistency is high for these five major FX pairs.
 
 | Question | Answer | Confidence | Evidence Nature |
 |----------|--------|------------|-----------------|
-| Q1: Do raw Yahoo Weekly timestamps represent real instants? | **YES** — each of the 262 boundary timestamps maps to Europe/London Monday 00:00 | **HIGH** — zero-deviation distribution across 262 boundary timestamps, 5 pairs | Direct distributional observation (not exchange-spec confirmation) |
+| Q1: Do raw Yahoo Weekly timestamps represent real instants? | **YES** — the epoch values are real instants; 262 sampled boundary timestamps correspond to Europe/London Monday 00:00 | **HIGH** — zero-deviation distribution across 262 boundary timestamps, 5 pairs; official exchange-boundary correspondence NOT VERIFIED | Direct distributional observation (not exchange-spec confirmation) |
 | Q2: Does yfinance resample Weekly data by default? | **NO** — `_resample` guard at line 647 skips when `interval == interval_user` | **HIGH** — source code inspection + single-run monkey-patch | Source code is direct; monkey-patch is empirical (not reproduced here) |
 | Q3: Do all three fetch paths agree? | **YES** — download index == Ticker.history index == raw Yahoo boundary timestamps | **HIGH** — exact match verified on single run | Empirical single-run observation |
-| Q4: Does yf.download include partial current week? | **YES** — last row IS the in-progress week (its index is the current-week start boundary) | **HIGH** — index alignment vs known weekly cadence | Calendar + index comparison, direct observation |
-| Q5: Is Weekly A, B, or C? | **LIKELY A (real instant) + C (library tz-loss)** — B classification disproved | **MEDIUM-HIGH** — boundary instant confirmed; exchange-bar correspondence NOT VERIFIED | Synthesis of Q1–Q4 |
-| Q6: Does the last row's OHLC actually change during the week? | **EXPECTED YES** but **NOT VERIFIED** | **LOW** — inferred from in-progress state, no successive-fetch comparison | Inference only |
+| Q4: What does the last yf.download row's index indicate? | It has the current week's start timestamp; OHLC completion and stability are NOT VERIFIED | **HIGH** for timestamp position; OHLC status unverified | Calendar + index comparison, direct observation |
+| Q5: Is Weekly A, B, or C? | The epoch values are real instants; `yf.download` loses timezone representation. Official exchange-boundary correspondence is NOT VERIFIED. | **HIGH** for timestamp instant and timezone loss; exchange-bar correspondence unverified | Synthesis of Q1–Q4 |
+| Q6: Does the last row's OHLC actually change during the week? | **NOT VERIFIED** | No successive-fetch comparison | Not established by the available evidence |
 
 **Key principle:** A timestamp can identify a bar's temporal position. It does not, by itself, establish whether that bar is complete or how its OHLC values were constructed.
 
@@ -372,7 +373,7 @@ Cross-pair consistency is high for these five major FX pairs.
 |---|-----------|--------|
 | L-1 | Only verified for FX pairs (`*=X`) | Low — the exchange timezone semantics are exchange-specific, but all sampled FX pairs use Europe/London |
 | L-2 | Not verified for historical yfinance versions | Same as original PV-1 NV-1 — the original report already noted this gap |
-| L-3 | repair=True behavior not fully explored (sklearn not installed) | Low — project does not use repair=True; default path is what matters |
+| L-3 | `repair=True` behavior was not fully tested. The default project path uses `repair=False`; no conclusion about the full repair-mode behavior is made. | Not applicable to the default path |
 | L-4 | DST transition boundaries not exhaustively mapped across all years | Low — the distribution analysis confirmed all 262 boundary timestamps land on Monday 00:00 Europe/London |
 | L-5 | Only yfinance 1.8.0 tested | Same as NV-1 in original report — reproducibility gap for older artifacts |
 
@@ -390,9 +391,9 @@ The original report's §4 Verdict table should be revised as follows:
 ### Revised (addendum-corrected):
 | TF | Verdict | Basis |
 |----|---------|-------|
-| **W** | **PARTIAL — class A + C** | Weekly buckets are real Europe/London Monday 00:00 exchange boundaries (A), but `yf.download` strips timezone (C) |
+| **W** | **PARTIAL — observed timestamp instant + C** | Sampled raw timestamps are real instants and boundary timestamps correspond to Europe/London Monday 00:00; official exchange-boundary correspondence is NOT VERIFIED. `yf.download` strips timezone (C). |
 
-Weekly and Daily are now confirmed to have **identical semantic structure**: real exchange-local-midnight instants, with yf.download stripping the timezone representation.
+Weekly exhibits the same observed timezone-localization pattern as the previously investigated Daily path. The sampled data does not establish that Weekly and Daily have identical semantic structure or that Monday 00:00 is the official exchange boundary.
 
 ---
 
@@ -404,11 +405,11 @@ However, it changes **what kind of problem this is**:
 
 | Before (original report) | After (addendum correction) |
 |-------------------------|------------------------------|
-| Weekly timestamps may be fundamentally un-recoverable session-date labels | Weekly timestamps are recoverable real instants — same as Daily |
-| D and W are semantically different, requiring different handling | D and W are semantically identical, requiring the same handling |
-| §5.1 compliance requires different solutions per timeframe | §5.1 compliance requires one solution for both timeframes |
+| Weekly labels might be session-date labels without established instant semantics | Raw Yahoo epoch values in the sampled run are real instants; sampled boundary timestamps correspond to Europe/London Monday 00:00 |
+| Weekly and Daily semantics may differ | Weekly shows the same observed timezone-localization pattern as the previously investigated Daily path; full semantic equivalence is not established |
+| Recovery of timezone-aware timestamps is unresolved | `Ticker.history` retains timezone in the sampled run, while `yf.download` strips it; recovery of all historical naive indexes is NOT VERIFIED |
 
-**The data underneath is recoverable.** The obstacle is the library's timezone-stripped output format, not Yahoo's original data semantics.
+These observations do not establish that every historical timestamp can be unambiguously recovered from a naive index, or that older yfinance versions and historical artifacts use the same handling.
 
 ---
 
@@ -444,7 +445,7 @@ yf.download last row: 2026-11-02 (Monday 00:00)
 
 The initial interpretation assumed `2026-11-02` was the "most recent completed Monday boundary." It missed that **2026-11-02 is the START of the current week**, which completes on 2026-11-09. The error was a simple calendar misreading, not a data anomaly.
 
-**Corrected finding:** `yf.download()` includes the current in-progress week as its last row. All timestamp semantics findings (WQ-1 through WQ-3) remain correct and unaffected by this correction. The in-progress row's OHLC values are provisional and will update until the weekly bar closes.
+**Revision 2 finding at the time:** `yf.download()` was described as including the current in-progress week as its last row, with provisional OHLC values that would update. Revision 3 subsequently marked the OHLC behavior NOT VERIFIED; Revision 4 further limits the finding to the observed last-row timestamp at the current week's start. OHLC completion and stability remain NOT VERIFIED.
 
 **Sections changed:**
 - §5 WQ-4 — completely rewritten
@@ -490,15 +491,41 @@ The initial interpretation assumed `2026-11-02` was the "most recent completed M
 - §7 — Evidence Nature column added; Q1–Q5 reworded; Q6 added (OHLC change, NOT VERIFIED); key principle added
 - §8 L-4 — "262 completed bars" → "262 boundary timestamps"
 
+### Revision 4 (2026-11-04, same day as Revision 3)
+
+**Issue:** Several statements extended timestamp observations into claims about OHLC completion, official exchange-boundary semantics, or general historical timestamp recoverability. The UTC rendering table also included the Wednesday observation in a table titled as a count of the 262 boundary timestamps.
+
+**Corrected findings:**
+- The UTC table now totals 262 boundary timestamps (110 Monday + 152 Sunday); the separate Wednesday observation is identified separately.
+- Epoch values are described as preserving absolute temporal position, while correspondence to the official exchange weekly boundary remains NOT VERIFIED.
+- Cross-path matching is limited to timestamp/index alignment for the sampled run; it does not establish OHLC equivalence or absence of all transformations.
+- The last-row discussion states only its observed current-week start timestamp. OHLC completion and stability remain NOT VERIFIED.
+- Weekly/Daily comparison is limited to the observed timezone-localization pattern; identical semantic structure is not claimed.
+- The verdict and Revision 5a implications no longer claim official exchange-boundary semantics or universal historical recoverability.
+
+**Sections changed:** §2.2, §2.5, §3.2, §4.4, §5.1–§5.7, §6.1–§6.2, §7, §9, §10, and §12.
+
+### Revision 5 (2026-11-04, same day as Revision 4)
+
+**Issue:** A final wording review identified temporal-language ambiguity around recurring London local-time boundaries, descriptions that implied a market close at the following timestamp, an unsupported causal attribution for the incomplete `repair=True` investigation, and an overly broad compliance statement about Git operations.
+
+**Corrected findings:**
+- UTC shifts are described as the representation of a recurring Europe/London Monday 00:00 local-time boundary, not a single fixed instant.
+- The following weekly boundary is identified by its timestamp without characterizing it as a market close.
+- The `repair=True` limitation no longer attributes the untested behavior to an unverified missing dependency.
+- Compliance now distinguishes read-only Git operations from Git-mutating operations.
+
+**Sections changed:** §2.2–§2.3, §5.2, §6.3, §8 L-3, and §13.
+
 ---
 
 ## 13. Compliance
 
 - No production source modified
 - No contract or YAML changed
-- No Git operations performed
+- No Git-mutating operations performed
 - No production scripts executed
 - No writes to `mc_results/` or `api/`
-- Only new file created: this addendum
+- Only this addendum document was modified
 
 **Stage B remains NOT AUTHORIZED. Revision 5a remains NOT FROZEN.**
