@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "AUDCHF",
-  "current_price": 0.57145,
-  "ann_drift_pct": 6.28,
-  "ann_vol_pct": 6.61,
+  "current_price": 0.56697,
+  "ann_drift_pct": 4.82,
+  "ann_vol_pct": 6.69,
   "range_90": [
-    0.56354,
-    0.58062
+    0.55886,
+    0.576
   ],
-  "percentile_rank": 45.2,
-  "p_up": 54.8,
-  "p_down": 45.2,
-  "p_up_pct": 54.8,
-  "p_down_pct": 45.2,
+  "percentile_rank": 46.7,
+  "p_up": 53.3,
+  "p_down": 46.7,
+  "p_up_pct": 53.3,
+  "p_down_pct": 46.7,
   "touch_upper_pct": 6.0,
-  "touch_lower_pct": 7.0,
-  "var_95": -0.0138,
-  "cvar_95": -0.0181,
-  "expected_price": 0.57207,
+  "touch_lower_pct": 6.9,
+  "var_95": -0.0143,
+  "cvar_95": -0.0186,
+  "expected_price": 0.56742,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-03T04:18:53.814356+00:00",
-  "date": "2026-11-03"
+  "generated_utc": "2026-11-04T03:38:15.190872+00:00",
+  "date": "2026-11-04"
 }

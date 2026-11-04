@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "USDJPY",
-  "current_price": 157.857,
-  "ann_drift_pct": -8.43,
+  "current_price": 157.683,
+  "ann_drift_pct": -8.59,
   "ann_vol_pct": 8.03,
   "range_90": [
-    154.711,
-    160.425
+    154.534,
+    160.245
   ],
-  "percentile_rank": 56.7,
-  "p_up": 43.3,
-  "p_down": 56.7,
-  "p_up_pct": 43.3,
-  "p_down_pct": 56.7,
+  "percentile_rank": 56.8,
+  "p_up": 43.2,
+  "p_down": 56.8,
+  "p_up_pct": 43.2,
+  "p_down_pct": 56.8,
   "touch_upper_pct": 6.6,
   "touch_lower_pct": 6.3,
-  "var_95": -0.0199,
-  "cvar_95": -0.025,
-  "expected_price": 157.561,
+  "var_95": -0.02,
+  "cvar_95": -0.0251,
+  "expected_price": 157.382,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-03T04:18:58.672623+00:00",
-  "date": "2026-11-03"
+  "generated_utc": "2026-11-04T03:38:16.923190+00:00",
+  "date": "2026-11-04"
 }
