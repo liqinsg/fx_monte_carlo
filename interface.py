@@ -6,6 +6,10 @@ Description:
     数据访问层参考示例。供调用者拷贝到本地项目中使用。
     1. 纯粹的数据契约：按日期和时间框架安全加载、解析 fx_monte_carlo 生成的复合 JSON 数据。
     2. 业务使用样例：附带展示如何利用返回的 Fib 区间与 zone_index 实现动态仓位缩放（K系数）策略。
+
+⚠️ 注意：下面的 example_* 系列仅为「如何消费数据」的参考示例，请勿直接用于生产。
+   其 fail-open（数据缺失 → K=1.0 满仓）与「与方向无关」两点均为已知缺陷，
+   生产策略须自行实现「方向感知 + 缺失时保守降级」的逻辑。详见 interface.md 第 4 节。
 """
 
 import json
@@ -74,6 +78,11 @@ def example_calculate_position_multiplier(
       - 均衡核心区 (zone_index 2, 3): K = 1.0 (标准仓位)
       - 次核心区 (zone_index 1, 4): K = 0.5 (降半仓)
       - 极端边缘区 (zone_index 0, 5): K = 0.2 (防守轻仓)
+
+    ⚠️ 仅供参考，请勿用于生产：
+       - 数据缺失时返回 K=1.0（fail-open，最不确定却给满仓，属危险默认）；
+       - 分档与 BUY/SELL 方向无关（同一 zone 对多空含义不同）。
+       生产策略请自行实现方向感知、并在数据缺失时保守降级。
     """
     res = get_pair_analytics(pair, day, timeframe)
     if not res:
