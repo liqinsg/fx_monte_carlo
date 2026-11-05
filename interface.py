@@ -16,7 +16,7 @@ import json
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-DEFAULT_RESULTS_DIR = Path.home() / "projects" / "fx_monte_carlo" / "mc_results"
+DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "mc_results"
 
 def get_latest_fib_segment_data(
     day: str, 
@@ -34,8 +34,15 @@ def get_latest_fib_segment_data(
     Returns:
         Optional[Dict[str, Any]]: 原始 JSON 字典数据，若文件不存在或解析失败则返回 None。
     """
-    fib_file = results_dir / f"mc_{timeframe}_all_pairs_{day}_fib.json"
-    if not fib_file.exists():
+    day = day.replace("-", "")
+    # Fibonacci data now lives in the original timestamped MC file.
+    candidates = sorted(results_dir.glob(f"mc_{timeframe}_all_pairs_{day}_????.json"))
+    if candidates:
+        fib_file = candidates[-1]
+    else:
+        # Read older snapshots produced before in-place segmentation was added.
+        fib_file = results_dir / f"mc_{timeframe}_all_pairs_{day}_fib.json"
+    if not fib_file.is_file():
         return None
     try:
         return json.loads(fib_file.read_text(encoding="utf-8"))

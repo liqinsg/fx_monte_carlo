@@ -47,6 +47,12 @@ BASE_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE_DIR))
 
 try:
+    from fib_mc_segment import segment_mc_data
+except ImportError as exc:
+    logger.exception("Unable to import Fibonacci segmentation")
+    raise
+
+try:
     from utils.mc_loader_local import (
         log_mc_observation,
         resolve_pending_mc_observations,
@@ -442,6 +448,7 @@ def main():
         },
         "results": pairs_results_map,
     }
+    batch_payload = segment_mc_data(batch_payload, date=now_dt.strftime("%Y%m%d"))
 
     unified_filename = f"mc_{TF}_all_pairs_{now_str}.json"
     save_batch_mc_safely(

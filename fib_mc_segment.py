@@ -7,18 +7,18 @@ For a given day:
   2. split the MC range (range_90) with Fibonacci ratios 0 / 0.236 / 0.382 / 0.5 /
      0.618 / 0.786 / 1.0 and label every zone,
   3. write back into the MC json (fib block per pair + metadata),
-  4. save as mc_<TF>_all_pairs_<YYYYMMDD>_fib.json (date only, no time).
+  4. save the segmented payload back to the same source JSON file.
 
 Usage:
     python3 fib_mc_segment.py 20261103
-    python3 fib_mc_segment.py 20261103 --dir ~/projects/fx_monte_carlo/mc_results
 """
 import argparse
+import copy
 import json
 import re
 from pathlib import Path
 
-MC_DIR = Path.home() / "projects" / "fx_monte_carlo" / "mc_results"
+MC_DIR = Path(__file__).resolve().parent / "mc_results"
 
 # Fibonacci ratios: retracement/extension grid used for zone splitting
 FIB_RATIOS = [0.0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0]
@@ -106,6 +106,36 @@ def segment_pair(rec: dict) -> dict:
     return rec
 
 
+def segment_mc_data(mc_data: dict, *, date: str | None = None) -> dict:
+    """Return an MC payload enriched with Fibonacci data, without file I/O.
+
+    The input shape is the unified MC JSON object: ``metadata`` and a
+    ``results`` mapping keyed by pair. The input is left unchanged.
+    """
+    if not isinstance(mc_data, dict) or not isinstance(mc_data.get("results"), dict):
+        raise ValueError("MC data must be a dict containing a 'results' mapping")
+
+    segmented = copy.deepcopy(mc_data)
+    for pair, rec in segmented["results"].items():
+        if not isinstance(rec, dict):
+            raise ValueError(f"MC result for {pair!r} must be a dictionary")
+        segmented["results"][pair] = segment_pair(rec)
+
+    metadata = segmented.setdefault("metadata", {})
+    if not isinstance(metadata, dict):
+        raise ValueError("MC data 'metadata' must be a dictionary")
+    metadata["fib_segmentation"] = {
+        "method": "Fibonacci grid on range_90",
+        "ratios": FIB_RATIOS,
+        "zones": [
+            {"tag": z[2], "label": z[3], "ratio": [z[0], z[1]]}
+            for z in FIB_ZONES
+        ],
+        "date": date,
+    }
+    return segmented
+
+
 def pick_earliest(files):
     """files: list of (path, HHMM). Return path with smallest HHMM."""
     return sorted(files, key=lambda x: x[1])[0][0]
@@ -124,24 +154,10 @@ def process(day: str, out_dir: Path):
             print(f"[!] no {tf} file for {day}")
             continue
         src = pick_earliest(cands)
-        data = json.loads(src.read_text())
-
-        for pair, rec in data["results"].items():
-            data["results"][pair] = segment_pair(rec)
-
-        data.setdefault("metadata", {})
-        data["metadata"]["fib_segmentation"] = {
-            "method": "Fibonacci grid on range_90",
-            "ratios": FIB_RATIOS,
-            "zones": [{"tag": z[2], "label": z[3], "ratio": [z[0], z[1]]} for z in FIB_ZONES],
-            "source_file": src.name,
-            "date": day,
-        }
-
-        out = out_dir / f"mc_{tf}_all_pairs_{day}_fib.json"
-        out.write_text(json.dumps(data, ensure_ascii=False, indent=2))
-        print(f"[✓] {src.name}  ->  {out.name}")
-        results.append(out)
+        data = segment_mc_data(json.loads(src.read_text(encoding="utf-8")), date=day)
+        src.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"[✓] Segmented in place: {src.name}")
+        results.append(src)
     return results
 
 
