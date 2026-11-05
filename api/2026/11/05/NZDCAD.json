@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "NZDCAD",
+  "current_price": 0.78859,
+  "ann_drift_pct": -6.74,
+  "ann_vol_pct": 6.03,
+  "range_90": [
+    0.7767,
+    0.79815
+  ],
+  "percentile_rank": 57.1,
+  "p_up": 42.9,
+  "p_down": 57.1,
+  "p_up_pct": 42.9,
+  "p_down_pct": 57.1,
+  "touch_upper_pct": 6.7,
+  "touch_lower_pct": 6.3,
+  "var_95": -0.0151,
+  "cvar_95": -0.0189,
+  "expected_price": 0.78741,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-11-05T03:57:42.292566+00:00",
+  "date": "2026-11-05"
+}
