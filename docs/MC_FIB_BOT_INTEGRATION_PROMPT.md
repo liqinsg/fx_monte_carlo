@@ -20,7 +20,7 @@
 
 ## ↓↓↓ 以下是粘贴到 ai_training_cnn 的 prompt ↓↓↓
 
-【任务】为 fx_trade_bot 增加 "Fib Zone 执行层"（仅影响仓位与 TP，不影响信号方向）
+【任务】为 **fx_trade_bot version 685** 增加 "Fib Zone 执行层"（仅影响仓位与 TP，不影响信号方向）
 
 ## 数据接入（重要：必须走 interface.py）
 
