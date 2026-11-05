@@ -20,6 +20,10 @@ import os
 import sys
 import json
 import argparse
+import logging
+import urllib.error
+import urllib.parse
+import urllib.request
 import yaml
 import numpy as np
 import pandas as pd
@@ -27,6 +31,12 @@ import yfinance as yf
 
 from datetime import datetime, timezone
 from pathlib import Path
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 # ==========================================
@@ -343,6 +353,51 @@ def save_batch_mc_safely(
                 pass
 
 
+def send_telegram_notification(results: list[dict], generated_at: str) -> bool:
+    """Best-effort notification; delivery failures never fail the MC run."""
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    chat_id = (os.getenv("TELEGRAM_CHAT_ID") or os.getenv("CHAT_ID") or "").strip()
+    if not token or not chat_id:
+        logger.info(
+            "Telegram notification skipped: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID/CHAT_ID must be configured."
+        )
+        return False
+
+    lines = [f"{TF_CFG['report_title']} — {generated_at} UTC", f"Pairs processed: {len(results)}"]
+    for item in results:
+        lines.append(
+            f"{item['pair']}: {item['current_price']} | {item['regime']} | "
+            f"P(up) {item['p_up']}% / P(down) {item['p_down']}%"
+        )
+    message = "\n".join(lines)
+    if len(message) > 4096:
+        message = message[:4075] + "\n… (truncated)"
+
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    body = urllib.parse.urlencode({"chat_id": chat_id, "text": message}).encode("utf-8")
+    request = urllib.request.Request(url, data=body, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        if not result.get("ok"):
+            logger.error("Telegram rejected notification: %s", result.get("description", "unknown API error"))
+            return False
+        logger.info("Telegram notification delivered.")
+        return True
+    except urllib.error.HTTPError as exc:
+        # Do not log the request URL: it contains the bot token.
+        try:
+            detail = exc.read().decode("utf-8", errors="replace")[:500]
+        except Exception:
+            detail = str(exc)
+        logger.error("Telegram HTTP error %s: %s", exc.code, detail)
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+        logger.error("Telegram notification failed (%s): %s", type(exc).__name__, exc)
+    except Exception:
+        logger.exception("Unexpected Telegram notification error")
+    return False
+
+
 # ==========================================
 # 🚀 MAIN RUN
 # ==========================================
@@ -400,12 +455,14 @@ def main():
         if resolved := resolve_pending_mc_observations(current_prices):
             print(f"📊 Resolved {resolved} pending MC observation(s)")
 
+    send_telegram_notification(all_results, now_str)
+
     print(f"✅ Run complete — {len(all_results)} pairs processed.")
 
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        err = f"❌ {TF} MC Error: {e}"
-        print(err)
+    except Exception:
+        logger.exception("%s Monte Carlo run failed", TF)
+        sys.exit(1)
