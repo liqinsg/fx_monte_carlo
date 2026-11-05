@@ -15,7 +15,9 @@ Usage:
 import argparse
 import copy
 import json
+import os
 import re
+import tempfile
 from pathlib import Path
 
 MC_DIR = Path(__file__).resolve().parent / "mc_results"
@@ -63,10 +65,43 @@ def locate_zone(price: float, lo: float, hi: float) -> int:
     return 5 if pos > 1 else 0
 
 
-def segment_pair(rec: dict) -> dict:
+def compute_zone_metrics(current_price: float, lo: float, hi: float) -> dict:
+    diff = hi - lo
+    if diff <= 0 or lo <= 0:
+        return {
+            "degenerate": True,
+            "range_90_pct": 0.0,
+            "ratio_pos": 0.5,
+            "breakout": False,
+            "zone_index": 3,
+            "clipped_pos": 0.5,
+        }
+
+    range_90_pct = round((diff / current_price) * 100, 3)
+    ratio_pos = (current_price - lo) / diff
+    breakout = ratio_pos < 0.0 or ratio_pos > 1.0
+    clipped_pos = max(0.0, min(1.0, ratio_pos))
+
+    zone_idx = 3
+    for i, (a, b, _tag, _name) in enumerate(FIB_ZONES):
+        if a <= clipped_pos <= b:
+            zone_idx = i
+            break
+
+    return {
+        "degenerate": False,
+        "range_90_pct": range_90_pct,
+        "ratio_pos": round(ratio_pos, 4),
+        "breakout": breakout,
+        "zone_index": zone_idx,
+        "clipped_pos": clipped_pos,
+    }
+
+
+def segment_pair(rec: dict, *, min_width_pct_gate: float = 1.2) -> dict:
     lo, hi = float(rec["range_90"][0]), float(rec["range_90"][1])
+    current_price = float(rec["current_price"])
     levels = fib_levels(lo, hi)
-    # ratio -> price lookup for zone edges
     edge = {r: lo + (hi - lo) * r for r in FIB_RATIOS}
 
     zones = []
@@ -78,13 +113,30 @@ def segment_pair(rec: dict) -> dict:
             "price": [round(edge[a], 6), round(edge[b], 6)],
         })
 
-    zone_idx = locate_zone(float(rec["current_price"]), lo, hi)
+    metrics = compute_zone_metrics(current_price, lo, hi)
+    zone_idx = metrics["zone_index"]
     z = FIB_ZONES[zone_idx]
     edge_lo, edge_hi = edge[z[0]], edge[z[1]]
     width = edge_hi - edge_lo
-    zone_pos = ((float(rec["current_price"]) - edge_lo) / width * 100) if width > 0 else 50.0
+    clipped_pos = metrics["clipped_pos"]
+    zone_pos = ((clipped_pos - z[0]) / (z[1] - z[0]) * 100) if width > 0 else 50.0
+
+    if metrics["degenerate"] or metrics["range_90_pct"] < min_width_pct_gate:
+        k_factor = 1.0
+        k_reason = "range_too_narrow_or_degenerate"
+    else:
+        if zone_idx in [2, 3]:
+            k_factor = 1.0
+            k_reason = "equilibrium_zone"
+        elif zone_idx in [1, 4]:
+            k_factor = 0.5
+            k_reason = "warning_zone"
+        else:
+            k_factor = 0.2
+            k_reason = "extreme_tail_zone"
 
     rec["fib"] = {
+        "schema_version": "1.1.0",
         "levels": levels,
         "zones": zones,
         "current_zone": {
@@ -95,18 +147,26 @@ def segment_pair(rec: dict) -> dict:
             "position_in_zone_pct": round(zone_pos, 1),
         },
         "zone_index": zone_idx,
+        "range_90_pct": metrics["range_90_pct"],
+        "ratio_pos": metrics["ratio_pos"],
+        "breakout": metrics["breakout"],
+        "degenerate": metrics["degenerate"],
+        "risk_model": {
+            "multiplier_k": k_factor,
+            "reason": k_reason,
+            "min_width_gate_pct": min_width_pct_gate,
+        },
         "labels": {
             "fib_zone": f"FIB {z[2]} | {z[3]}",
             "fib_position": f"FIB {zone_idx + 1}/6 {round(zone_pos)}% in {z[2]}",
             "action": fib_bias_action(zone_idx, float(rec.get("p_up", 50.0))),
         },
-        # combined label: fib zone + existing MC regime
         "fib_regime_label": f"🧭 FIB {z[2]} {z[3]} | {rec.get('regime', '')}",
     }
     return rec
 
 
-def segment_mc_data(mc_data: dict, *, date: str | None = None) -> dict:
+def segment_mc_data(mc_data: dict, *, date: str | None = None, min_width_pct_gate: float = 1.2) -> dict:
     """Return an MC payload enriched with Fibonacci data, without file I/O.
 
     The input shape is the unified MC JSON object: ``metadata`` and a
@@ -119,11 +179,12 @@ def segment_mc_data(mc_data: dict, *, date: str | None = None) -> dict:
     for pair, rec in segmented["results"].items():
         if not isinstance(rec, dict):
             raise ValueError(f"MC result for {pair!r} must be a dictionary")
-        segmented["results"][pair] = segment_pair(rec)
+        segmented["results"][pair] = segment_pair(rec, min_width_pct_gate=min_width_pct_gate)
 
     metadata = segmented.setdefault("metadata", {})
     if not isinstance(metadata, dict):
         raise ValueError("MC data 'metadata' must be a dictionary")
+    metadata["schema_version"] = "1.1.0"
     metadata["fib_segmentation"] = {
         "method": "Fibonacci grid on range_90",
         "ratios": FIB_RATIOS,
@@ -141,6 +202,26 @@ def pick_earliest(files):
     return sorted(files, key=lambda x: x[1])[0][0]
 
 
+def save_json_safely(file_path: Path, data: dict) -> None:
+    file_path = Path(file_path)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_path = tempfile.mkstemp(
+        dir=str(file_path.parent), prefix="tmp_fib_", suffix=".json"
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        os.replace(temp_path, file_path)
+    except Exception as e:
+        if os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+        raise e
+
+
 def process(day: str, out_dir: Path):
     results = []
     for tf in ("D", "W"):
@@ -155,10 +236,13 @@ def process(day: str, out_dir: Path):
             continue
         src = pick_earliest(cands)
         data = segment_mc_data(json.loads(src.read_text(encoding="utf-8")), date=day)
-        src.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        save_json_safely(src, data)
         print(f"[✓] Segmented in place: {src.name}")
         results.append(src)
     return results
+
+
+apply_fib_segmentation = segment_mc_data
 
 
 if __name__ == "__main__":

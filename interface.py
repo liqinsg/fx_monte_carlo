@@ -9,11 +9,14 @@ Description:
 """
 
 import json
+import os
+import re
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-# 默认指向标准输出目录（可由调用者按需修改）
-DEFAULT_RESULTS_DIR = Path.home() / "projects" / "fx_monte_carlo" / "mc_results"
+DEFAULT_RESULTS_DIR = Path(
+    os.getenv("FX_MC_RESULTS_DIR", str(Path.home() / "projects" / "fx_monte_carlo" / "mc_results"))
+)
 
 
 def get_latest_fib_mc_data(
@@ -25,13 +28,19 @@ def get_latest_fib_mc_data(
     if not results_dir.exists():
         return None
 
-    pattern = f"mc_{timeframe}_all_pairs_{day}_*.json"
-    matched_files = sorted(results_dir.glob(pattern))
+    regex = re.compile(rf"^mc_{re.escape(timeframe)}_all_pairs_{re.escape(day)}_(\d{{4}})\.json$")
+    matched = []
+    for entry in results_dir.iterdir():
+        if entry.is_file():
+            m = regex.match(entry.name)
+            if m:
+                matched.append((m.group(1), entry))
 
-    if not matched_files:
+    if not matched:
         return None
 
-    latest_file = matched_files[-1]
+    matched.sort(key=lambda x: x[0])
+    latest_file = matched[-1][1]
     try:
         return json.loads(latest_file.read_text(encoding="utf-8"))
     except Exception as e:

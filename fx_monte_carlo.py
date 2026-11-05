@@ -24,6 +24,7 @@ import logging
 import urllib.error
 import urllib.parse
 import urllib.request
+import hashlib
 import yaml
 import numpy as np
 import pandas as pd
@@ -227,7 +228,7 @@ def fetch_data(pair: str) -> pd.DataFrame:
 # 🧠 MONTE CARLO ENGINE
 # ==========================================
 
-def run_mc(pair: str):
+def run_mc(pair: str, day_str: str):
     lookback = TF_CFG["lookback"]
     forecast = TF_CFG["forecast"]
     periods_year = TF_CFG["periods_year"]
@@ -250,7 +251,9 @@ def run_mc(pair: str):
     vol = float(np.std(log_returns) * np.sqrt(periods_year))
     dt = 1 / periods_year
 
-    np.random.seed(42)
+    seed_str = f"{pair}_{day_str}"
+    seed_val = int(hashlib.md5(seed_str.encode()).hexdigest(), 16) % (2**32)
+    rng = np.random.default_rng(seed_val)
     scale_factor = (
         np.sqrt((STUDENT_T_DF - 2) / STUDENT_T_DF)
         if STUDENT_T_DF > 2
@@ -258,7 +261,7 @@ def run_mc(pair: str):
     )
 
     t_shocks = (
-        np.random.standard_t(STUDENT_T_DF, size=(SIMULATIONS, forecast))
+        rng.standard_t(STUDENT_T_DF, size=(SIMULATIONS, forecast))
         * scale_factor
     )
 
@@ -420,7 +423,7 @@ def main():
 
     for pair in PAIRS:
         print(f"🔄 Processing: {pair} [{TF}]")
-        data, ok = run_mc(pair)
+        data, ok = run_mc(pair, now_dt.strftime("%Y%m%d"))
 
         if not ok:
             print(f"⚠️ Skipped {pair} [{TF}]")
