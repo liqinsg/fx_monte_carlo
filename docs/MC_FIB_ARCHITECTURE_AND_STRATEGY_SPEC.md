@@ -87,16 +87,22 @@ While the data provider remains agnostic, `interface.py` provides a reference qu
 
 External systems access data strictly through `interface.get_pair_analytics()` or `get_latest_fib_mc_data()`.
 
+The example below is an excerpt copied from a real generated snapshot (`2026-11-05T04:50:42Z`, pair `EURUSD=X`), not a hand-assembled illustration.
+
 ```json
 {
   "metadata": {
     "schema_version": "1.1.0",
     "timeframe": "D",
     "generated_utc": "2026-11-05T04:50:42.553610+00:00",
-    "total_pairs": 28
+    "total_pairs": 28,
+    "simulations": 5000,
+    "lookback": 90,
+    "forecast": 5
   },
   "results": {
     "EURUSD=X": {
+      "timeframe": "D",
       "pair": "EURUSD=X",
       "current_price": 1.12651,
       "range_90": [1.11447, 1.13679],
@@ -104,15 +110,15 @@ External systems access data strictly through `interface.get_pair_analytics()` o
       "p_up": 44.9,
       "fib": {
         "schema_version": "1.1.0",
-        "range_90_pct": 8.101,
-        "ratio_pos": 0.4764,
+        "range_90_pct": 1.981,
+        "ratio_pos": 0.5394,
         "breakout": false,
         "degenerate": false,
-        "zone_index": 2,
+        "zone_index": 3,
         "current_zone": {
-          "tag": "F382",
-          "label": "Below Equilibrium",
-          "position_in_zone_pct": 79.7
+          "tag": "F5",
+          "label": "Above Equilibrium",
+          "position_in_zone_pct": 33.4
         },
         "risk_model": {
           "multiplier_k": 1.0,
