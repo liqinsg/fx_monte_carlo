@@ -1,80 +1,70 @@
-# 🧭 FX-Monte-Carlo & Fibonacci Interface Specification
 
-本文档面向所有需要对接 `fx_monte_carlo` 模块的外部系统（如交易 Bot、自动化风控脚本等），提供统一的接口契约说明。
+# 🧭 FX-Monte-Carlo Data Access Contract & Example
 
----
-
-## 1. 模块概述
-
-本项目将 **Monte Carlo 概率区间模拟** 与 **Fibonacci 非线性空间分割** 深度结合。外部交易 Bot 无需关心复杂的统计模拟过程，只需通过标准接口查询当前价格的**空间偏离度**与**动态仓位缩放系数 ($K$)**。
+本模块为外部系统提供标准化的 **Monte Carlo 概率区间 + Fibonacci 空间分割** 纯数据契约。
 
 ---
 
-## 2. 核心调用方法
+## 1. 核心原则
 
-### `query_pair_risk_factor(pair, day, timeframe="D")`
+* **MC提供客观的量化测算结果**（包含模拟概率、统计分位数、Fibonacci 网格区间及当前价格映射）。
+* **可自由设计策略绑定**：例如用于仓位控制、网格边界、风控止损或趋势过滤。
 
-* **作用**：查询指定交易对在特定日期的最新风控状态。
-* **参数说明**：
+---
 
-  * `pair` (str): 交易对代号，例如 `"XAU_USD"`, `"EUR_USD"`。
-  * `day` (str): 目标日期，格式为 `YYYYMMDD`（如 `"20261104"`）。
-  * `timeframe` (str): 时间框架，支持 `"D"`（日线，默认）或 `"W"`（周线）。
+## 2. API 调用参考
 
-* **返回值格式 (JSON Schema)**：
+### `get_pair_analytics(pair, day, timeframe="D")`
+
+* **作用**：加载指定日期最新生成的复合 JSON，并返回特定交易对的完整分析数据结构。
+* **返回数据结构示例 (JSON Schema)**：
 
 ```json
 {
-  "status": "SUCCESS",
-  "pair": "XAU_USD",
-  "current_price": 2745.50,
-  "p_up": 56.2,
-  "regime": "BULLISH_TREND",
-  "zone_index": 3,
-  "zone_tag": "F382",
-  "zone_label": "Below Equilibrium",
-  "action": "NEUTRAL",
-  "multiplier_k": 1.0,
-  "combined_label": "🧭 FIB F382 Below Equilibrium | BULLISH_TREND"
+  "timeframe": "D",
+  "pair": "EURUSD=X",
+  "current_price": 1.12575,
+  "range_90": [1.11374, 1.13566],
+  "percentile_rank": 56.0,
+  "p_up": 44.0,
+  "fib": {
+    "levels": {
+      "fib_0": 1.11374,
+      "fib_50": 1.1247,
+      "fib_100": 1.13566
+    },
+    "zones": [...],
+    "current_zone": {
+      "tag": "F5",
+      "label": "Above Equilibrium",
+      "position_in_zone_pct": 40.6
+    },
+    "zone_index": 3
+  }
 }
 ```
 
 ---
 
-## 3. 仓位缩放系数 (K 系数) 映射规则
+## 3. 调用者自由消费示例
 
-根据价格在 Fibonacci 划分区间的 `zone_index`（0 到 5），系统自动输出对应的动态风控系数 **K**，用于与你的梯级仓位（如 10k → 5k → 2k Units）相乘：
-
-| 区域索引 (zone_index) | Fibonacci 区间名 | 市场空间状态 | 仓位缩放系数 (K) | 策略含义 |
-|---|---|---|---|---|
-| 2 或 3 | F382 / F5 (Below/Above Equilibrium) | 均衡核心区 | 1.0 | 正常执行当前阶梯标准仓位（如 10,000 Units） |
-| 1 或 4 | F236 / F618 (Discount / Premium) | 次核心/预警区 | 0.5 | 结构偏离中心，主动降半仓（如 5,000 Units） |
-| 0 或 5 | F0 / F786+ (Deep Discount/Premium) | 极端边缘/尾部区 | 0.2 | 极度偏离，随时面临均值回归，挂防守轻仓（如 2,000 Units） |
-
-> **注**：若底层数据未生成或文件缺失，接口将自动触发降级保护，返回 `status: "FALLBACK"` 且 `multiplier_k: 1.0`，确保交易 Bot 不会因外部数据故障而崩溃。
-
----
-
-## 4. 外部交易 Bot 调用示例 (Python)
+调用者只需将 `interface.py` 放到本地，即可按需提取任意指标：
 
 ```python
-import sys
-from pathlib import Path
+from interface import get_pair_analytics
 
-# 1. 导入 fx_monte_carlo 接口
-sys.path.append(str(Path.home() / "projects" / "fx_monte_carlo"))
-from interface import query_pair_risk_factor
+# 获取某交易对的今日数据
+data = get_pair_analytics("EURUSD=X", "20261105")
 
-# 2. 获取当前交易对风险系数
-today_str = "20261104"  # 或动态获取日期
-risk_info = query_pair_risk_factor("XAU_USD", today_str)
-
-k_factor = risk_info["multiplier_k"]
-print(f"当前 Fib 区间: {risk_info['zone_label']} | 推荐 K 系数: {k_factor}")
-
-# 3. 结合你的阶梯仓位计算最终下单 Units
-base_tier_units = 10000  # 假设当前处于第一梯级
-final_units = int(base_tier_units * k_factor)
-
-print(f"最终下发到 OANDA 的 Units: {final_units}")
+if data:
+    current_price = data["current_price"]
+    zone_idx = data["fib"]["zone_index"]
+    zone_label = data["fib"]["current_zone"]["label"]
+  
+    print(f"Price: {current_price} | Fib Zone Index: {zone_idx} ({zone_label})")
+  
+    # 调用者自行实现个性化逻辑（例如：根据 zone_index 自行决定风控、减仓或挂单）
+    if zone_idx >= 4:
+        # 开发者自己的高位策略...
+        pass
 ```
