@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "CADJPY",
+  "current_price": 112.384,
+  "ann_drift_pct": -3.18,
+  "ann_vol_pct": 7.5,
+  "range_90": [
+    110.394,
+    114.198
+  ],
+  "percentile_rank": 53.1,
+  "p_up": 46.9,
+  "p_down": 53.1,
+  "p_up_pct": 46.9,
+  "p_down_pct": 53.1,
+  "touch_upper_pct": 6.4,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0177,
+  "cvar_95": -0.0225,
+  "expected_price": 112.292,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-11-06T03:55:10.759265+00:00",
+  "date": "2026-11-06"
+}
