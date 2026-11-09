@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "EURCHF",
-  "current_price": 0.91504,
-  "ann_drift_pct": -1.29,
-  "ann_vol_pct": 4.49,
+  "current_price": 0.91589,
+  "ann_drift_pct": -1.61,
+  "ann_vol_pct": 4.47,
   "range_90": [
-    0.90542,
-    0.92398
+    0.90625,
+    0.92474
   ],
-  "percentile_rank": 52.2,
-  "p_up": 47.8,
-  "p_down": 52.2,
-  "p_up_pct": 47.8,
-  "p_down_pct": 52.2,
+  "percentile_rank": 52.7,
+  "p_up": 47.3,
+  "p_down": 52.7,
+  "p_up_pct": 47.3,
+  "p_down_pct": 52.7,
   "touch_upper_pct": 6.3,
   "touch_lower_pct": 6.5,
   "var_95": -0.0105,
   "cvar_95": -0.0134,
-  "expected_price": 0.9147,
+  "expected_price": 0.91549,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-06T03:55:11.889834+00:00",
-  "date": "2026-11-06"
+  "generated_utc": "2026-11-09T03:20:22.837958+00:00",
+  "date": "2026-11-09"
 }

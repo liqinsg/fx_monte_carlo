@@ -1,27 +1,27 @@
 {
   "timeframe": "D",
   "pair": "EURJPY",
-  "current_price": 176.69,
-  "ann_drift_pct": -12.47,
-  "ann_vol_pct": 7.17,
+  "current_price": 176.615,
+  "ann_drift_pct": -13.83,
+  "ann_vol_pct": 7.11,
   "range_90": [
-    173.372,
-    179.081
+    173.277,
+    178.932
   ],
-  "percentile_rank": 60.5,
-  "p_up": 39.5,
-  "p_down": 60.5,
-  "p_up_pct": 39.5,
-  "p_down_pct": 60.5,
-  "touch_upper_pct": 6.9,
+  "percentile_rank": 61.6,
+  "p_up": 38.4,
+  "p_down": 61.6,
+  "p_up_pct": 38.4,
+  "p_down_pct": 61.6,
+  "touch_upper_pct": 7.0,
   "touch_lower_pct": 6.1,
-  "var_95": -0.0188,
-  "cvar_95": -0.0233,
-  "expected_price": 176.221,
+  "var_95": -0.0189,
+  "cvar_95": -0.0234,
+  "expected_price": 176.099,
   "regime": "\u26a1 D STRONG MOMENTUM",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-06T03:55:09.930463+00:00",
-  "date": "2026-11-06"
+  "generated_utc": "2026-11-09T03:20:21.898438+00:00",
+  "date": "2026-11-09"
 }

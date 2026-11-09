@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "USDCHF",
+  "current_price": 0.82112,
+  "ann_drift_pct": 5.59,
+  "ann_vol_pct": 6.59,
+  "range_90": [
+    0.80968,
+    0.83415
+  ],
+  "percentile_rank": 45.9,
+  "p_up": 54.1,
+  "p_down": 45.9,
+  "p_up_pct": 54.1,
+  "p_down_pct": 45.9,
+  "touch_upper_pct": 6.0,
+  "touch_lower_pct": 7.0,
+  "var_95": -0.0139,
+  "cvar_95": -0.0181,
+  "expected_price": 0.82189,
+  "regime": "\ud83d\udd39 D NEUTRAL",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-11-09T03:20:25.025567+00:00",
+  "date": "2026-11-09"
+}
