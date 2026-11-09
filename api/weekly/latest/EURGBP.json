@@ -1,27 +1,27 @@
 {
   "timeframe": "W",
   "pair": "EURGBP",
-  "current_price": 0.83466,
-  "ann_drift_pct": -0.06,
-  "ann_vol_pct": 3.88,
+  "current_price": 0.83403,
+  "ann_drift_pct": 0.18,
+  "ann_vol_pct": 3.86,
   "range_90": [
-    0.81837,
-    0.85059
+    0.81803,
+    0.85006
   ],
-  "percentile_rank": 51.0,
-  "p_up": 49.0,
-  "p_down": 51.0,
-  "p_up_pct": 49.0,
-  "p_down_pct": 51.0,
+  "percentile_rank": 50.4,
+  "p_up": 49.6,
+  "p_down": 50.4,
+  "p_up_pct": 49.6,
+  "p_down_pct": 50.4,
   "touch_upper_pct": 6.2,
   "touch_lower_pct": 6.6,
-  "var_95": -0.0195,
-  "cvar_95": -0.0249,
-  "expected_price": 0.83443,
+  "var_95": -0.0192,
+  "cvar_95": -0.0246,
+  "expected_price": 0.834,
   "regime": "\u23f3 W CONSOLIDATION RANGE",
   "lookback": 104,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-02T06:08:19.891304+00:00",
-  "date": "2026-11-02"
+  "generated_utc": "2026-11-09T06:34:05.073609+00:00",
+  "date": "2026-11-09"
 }
