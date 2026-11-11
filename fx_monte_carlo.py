@@ -8,8 +8,10 @@ Usage:
     python fx_monte_carlo.py            # default: D (Daily)
     python fx_monte_carlo.py D          # Daily
     python fx_monte_carlo.py W          # Weekly
+    python fx_monte_carlo.py M          # Monthly
     python fx_monte_carlo.py -d         # Daily
     python fx_monte_carlo.py -w         # Weekly
+    python fx_monte_carlo.py -m         # Monthly
 
 The default timeframe is D (Daily). All results are saved into a single
 ``mc_results/`` directory; filenames already encode the timeframe, e.g.
@@ -75,6 +77,8 @@ try:
     DAILY_FORECAST = int(mc_config["daily_forecast"])
     WEEKLY_LOOKBACK = int(mc_config["weekly_lookback"])
     WEEKLY_FORECAST = int(mc_config["weekly_forecast"])
+    MONTHLY_LOOKBACK = int(mc_config["monthly_lookback"])
+    MONTHLY_FORECAST = int(mc_config["monthly_forecast"])
 except KeyError as e:
     print(f"❌ Missing required parameter in {YAML_FILE}: {e}")
     sys.exit(1)
@@ -96,8 +100,10 @@ parser = argparse.ArgumentParser(
   python fx_monte_carlo.py            # default: D (Daily)
   python fx_monte_carlo.py D          # Daily
   python fx_monte_carlo.py W          # Weekly
+  python fx_monte_carlo.py M          # Monthly
   python fx_monte_carlo.py -d         # Daily
   python fx_monte_carlo.py -w         # Weekly
+  python fx_monte_carlo.py -m         # Monthly
 """,
 )
 
@@ -106,8 +112,8 @@ tf_group.add_argument(
     "timeframe_pos",
     nargs="?",
     default="D",
-    choices=["D", "W", "d", "w"],
-    help="Timeframe: D (Daily, default) or W (Weekly)",
+    choices=["D", "W", "M", "d", "w", "m"],
+    help="Timeframe: D (Daily, default), W (Weekly), or M (Monthly)",
 )
 tf_group.add_argument(
     "-d",
@@ -121,6 +127,12 @@ tf_group.add_argument(
     action="store_true",
     help="Execute Weekly timeframe",
 )
+tf_group.add_argument(
+    "-m",
+    "--monthly",
+    action="store_true",
+    help="Execute Monthly timeframe",
+)
 
 args = parser.parse_args()
 
@@ -129,6 +141,8 @@ if args.daily:
     TF = "D"
 elif args.weekly:
     TF = "W"
+elif args.monthly:
+    TF = "M"
 elif args.timeframe_pos:
     TF = args.timeframe_pos.upper()
 else:
@@ -155,6 +169,14 @@ TIMEFRAME_CONFIG = {
         "forecast": WEEKLY_FORECAST,
         "periods_year": 52,
         "report_title": "FX WEEKLY MONTE CARLO UPDATE",
+    },
+    "M": {
+        "yf_interval": "1mo",
+        "yf_period": "10y",
+        "lookback": MONTHLY_LOOKBACK,
+        "forecast": MONTHLY_FORECAST,
+        "periods_year": 12,
+        "report_title": "FX MONTHLY MONTE CARLO UPDATE",
     },
 }
 
