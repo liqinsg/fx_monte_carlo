@@ -1,0 +1,27 @@
+{
+  "timeframe": "D",
+  "pair": "GBPAUD",
+  "current_price": 1.94085,
+  "ann_drift_pct": 1.52,
+  "ann_vol_pct": 5.47,
+  "range_90": [
+    1.91719,
+    1.96517
+  ],
+  "percentile_rank": 49.2,
+  "p_up": 50.8,
+  "p_down": 49.2,
+  "p_up_pct": 50.8,
+  "p_down_pct": 49.2,
+  "touch_upper_pct": 6.2,
+  "touch_lower_pct": 6.7,
+  "var_95": -0.0122,
+  "cvar_95": -0.0157,
+  "expected_price": 1.94116,
+  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-11-11T03:28:34.131277+00:00",
+  "date": "2026-11-11"
+}
