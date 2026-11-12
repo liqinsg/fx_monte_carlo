@@ -1,27 +1,142 @@
 {
   "timeframe": "D",
   "pair": "EURJPY",
-  "current_price": 177.382,
-  "ann_drift_pct": -12.87,
-  "ann_vol_pct": 7.15,
+  "current_price": 176.994,
+  "ann_drift_pct": -13.49,
+  "ann_vol_pct": 7.14,
   "range_90": [
-    174.048,
-    179.758
+    173.759,
+    179.377
   ],
-  "percentile_rank": 60.8,
-  "p_up": 39.2,
-  "p_down": 60.8,
-  "p_up_pct": 39.2,
-  "p_down_pct": 60.8,
-  "touch_upper_pct": 6.9,
-  "touch_lower_pct": 6.1,
-  "var_95": -0.0188,
-  "cvar_95": -0.0233,
-  "expected_price": 176.897,
+  "percentile_rank": 61.0,
+  "p_up": 39.0,
+  "p_down": 61.0,
+  "p_up_pct": 39.0,
+  "p_down_pct": 61.0,
+  "touch_upper_pct": 6.8,
+  "touch_lower_pct": 6.0,
+  "var_95": -0.0183,
+  "cvar_95": -0.024,
+  "expected_price": 176.529,
   "regime": "\u26a1 D STRONG MOMENTUM",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-11T03:28:32.603451+00:00",
-  "date": "2026-11-11"
+  "generated_utc": "2026-11-12T07:02:50.614633+00:00",
+  "fib": {
+    "schema_version": "1.1.0",
+    "levels": {
+      "fib_0": 173.759,
+      "fib_23.6": 175.084848,
+      "fib_38.2": 175.905076,
+      "fib_50": 176.568,
+      "fib_61.8": 177.230924,
+      "fib_78.6": 178.174748,
+      "fib_100": 179.377
+    },
+    "zones": [
+      {
+        "tag": "F0",
+        "label": "Deep Discount",
+        "ratio": [
+          0.0,
+          0.236
+        ],
+        "price": [
+          173.759,
+          175.084848
+        ]
+      },
+      {
+        "tag": "F236",
+        "label": "Discount",
+        "ratio": [
+          0.236,
+          0.382
+        ],
+        "price": [
+          175.084848,
+          175.905076
+        ]
+      },
+      {
+        "tag": "F382",
+        "label": "Below Equilibrium",
+        "ratio": [
+          0.382,
+          0.5
+        ],
+        "price": [
+          175.905076,
+          176.568
+        ]
+      },
+      {
+        "tag": "F5",
+        "label": "Above Equilibrium",
+        "ratio": [
+          0.5,
+          0.618
+        ],
+        "price": [
+          176.568,
+          177.230924
+        ]
+      },
+      {
+        "tag": "F618",
+        "label": "Premium",
+        "ratio": [
+          0.618,
+          0.786
+        ],
+        "price": [
+          177.230924,
+          178.174748
+        ]
+      },
+      {
+        "tag": "F786",
+        "label": "Deep Premium",
+        "ratio": [
+          0.786,
+          1.0
+        ],
+        "price": [
+          178.174748,
+          179.377
+        ]
+      }
+    ],
+    "current_zone": {
+      "tag": "F5",
+      "label": "Above Equilibrium",
+      "ratio": [
+        0.5,
+        0.618
+      ],
+      "price": [
+        176.568,
+        177.230924
+      ],
+      "position_in_zone_pct": 64.3
+    },
+    "zone_index": 3,
+    "range_90_pct": 3.174,
+    "ratio_pos": 0.5758,
+    "breakout": false,
+    "degenerate": false,
+    "risk_model": {
+      "multiplier_k": 1.0,
+      "reason": "equilibrium_zone",
+      "min_width_gate_pct": 1.2
+    },
+    "labels": {
+      "fib_zone": "FIB F5 | Above Equilibrium",
+      "fib_position": "FIB 4/6 64% in F5",
+      "action": "SELL_LIMIT"
+    },
+    "fib_regime_label": "\ud83e\udded FIB F5 Above Equilibrium | \u26a1 D STRONG MOMENTUM"
+  },
+  "date": "2026-11-12"
 }
