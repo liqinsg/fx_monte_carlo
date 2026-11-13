@@ -1,38 +1,38 @@
 {
   "timeframe": "D",
   "pair": "GBPAUD",
-  "current_price": 1.94093,
-  "ann_drift_pct": 1.33,
-  "ann_vol_pct": 5.47,
+  "current_price": 1.94788,
+  "ann_drift_pct": 2.89,
+  "ann_vol_pct": 5.51,
   "range_90": [
-    1.91696,
-    1.96619
+    1.92433,
+    1.97363
   ],
-  "percentile_rank": 49.2,
-  "p_up": 50.8,
-  "p_down": 49.2,
-  "p_up_pct": 50.8,
-  "p_down_pct": 49.2,
-  "touch_upper_pct": 6.3,
-  "touch_lower_pct": 6.5,
-  "var_95": -0.0124,
-  "cvar_95": -0.0163,
-  "expected_price": 1.94131,
-  "regime": "\u23f3 D CONSOLIDATION RANGE",
+  "percentile_rank": 45.6,
+  "p_up": 54.4,
+  "p_down": 45.6,
+  "p_up_pct": 54.4,
+  "p_down_pct": 45.6,
+  "touch_upper_pct": 5.9,
+  "touch_lower_pct": 6.3,
+  "var_95": -0.0121,
+  "cvar_95": -0.0159,
+  "expected_price": 1.94917,
+  "regime": "\ud83d\udd39 D NEUTRAL",
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-12T07:02:51.339793+00:00",
+  "generated_utc": "2026-11-13T06:32:56.402736+00:00",
   "fib": {
     "schema_version": "1.1.0",
     "levels": {
-      "fib_0": 1.91696,
-      "fib_23.6": 1.928578,
-      "fib_38.2": 1.935766,
-      "fib_50": 1.941575,
-      "fib_61.8": 1.947384,
-      "fib_78.6": 1.955655,
-      "fib_100": 1.96619
+      "fib_0": 1.92433,
+      "fib_23.6": 1.935965,
+      "fib_38.2": 1.943163,
+      "fib_50": 1.94898,
+      "fib_61.8": 1.954797,
+      "fib_78.6": 1.96308,
+      "fib_100": 1.97363
     },
     "zones": [
       {
@@ -43,8 +43,8 @@
           0.236
         ],
         "price": [
-          1.91696,
-          1.928578
+          1.92433,
+          1.935965
         ]
       },
       {
@@ -55,8 +55,8 @@
           0.382
         ],
         "price": [
-          1.928578,
-          1.935766
+          1.935965,
+          1.943163
         ]
       },
       {
@@ -67,8 +67,8 @@
           0.5
         ],
         "price": [
-          1.935766,
-          1.941575
+          1.943163,
+          1.94898
         ]
       },
       {
@@ -79,8 +79,8 @@
           0.618
         ],
         "price": [
-          1.941575,
-          1.947384
+          1.94898,
+          1.954797
         ]
       },
       {
@@ -91,8 +91,8 @@
           0.786
         ],
         "price": [
-          1.947384,
-          1.955655
+          1.954797,
+          1.96308
         ]
       },
       {
@@ -103,8 +103,8 @@
           1.0
         ],
         "price": [
-          1.955655,
-          1.96619
+          1.96308,
+          1.97363
         ]
       }
     ],
@@ -116,14 +116,14 @@
         0.5
       ],
       "price": [
-        1.935766,
-        1.941575
+        1.943163,
+        1.94898
       ],
-      "position_in_zone_pct": 88.9
+      "position_in_zone_pct": 81.1
     },
     "zone_index": 2,
-    "range_90_pct": 2.536,
-    "ratio_pos": 0.4869,
+    "range_90_pct": 2.531,
+    "ratio_pos": 0.4777,
     "breakout": false,
     "degenerate": false,
     "risk_model": {
@@ -133,10 +133,10 @@
     },
     "labels": {
       "fib_zone": "FIB F382 | Below Equilibrium",
-      "fib_position": "FIB 3/6 89% in F382",
+      "fib_position": "FIB 3/6 81% in F382",
       "action": "BUY_LIMIT"
     },
-    "fib_regime_label": "\ud83e\udded FIB F382 Below Equilibrium | \u23f3 D CONSOLIDATION RANGE"
+    "fib_regime_label": "\ud83e\udded FIB F382 Below Equilibrium | \ud83d\udd39 D NEUTRAL"
   },
-  "date": "2026-11-12"
+  "date": "2026-11-13"
 }
