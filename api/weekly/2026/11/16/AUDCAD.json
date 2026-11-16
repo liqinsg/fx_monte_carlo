@@ -1,0 +1,142 @@
+{
+  "timeframe": "W",
+  "pair": "AUDCAD",
+  "current_price": 0.96427,
+  "ann_drift_pct": 1.41,
+  "ann_vol_pct": 6.95,
+  "range_90": [
+    0.93653,
+    0.99476
+  ],
+  "percentile_rank": 48.2,
+  "p_up": 51.8,
+  "p_down": 48.2,
+  "p_up_pct": 51.8,
+  "p_down_pct": 48.2,
+  "touch_upper_pct": 5.7,
+  "touch_lower_pct": 6.3,
+  "var_95": -0.0288,
+  "cvar_95": -0.0375,
+  "expected_price": 0.96547,
+  "regime": "\u23f3 W CONSOLIDATION RANGE",
+  "lookback": 260,
+  "forecast": 4,
+  "simulations": 5000,
+  "generated_utc": "2026-11-16T06:32:51.131457+00:00",
+  "fib": {
+    "schema_version": "1.1.0",
+    "levels": {
+      "fib_0": 0.93653,
+      "fib_23.6": 0.950272,
+      "fib_38.2": 0.958774,
+      "fib_50": 0.965645,
+      "fib_61.8": 0.972516,
+      "fib_78.6": 0.982299,
+      "fib_100": 0.99476
+    },
+    "zones": [
+      {
+        "tag": "F0",
+        "label": "Deep Discount",
+        "ratio": [
+          0.0,
+          0.236
+        ],
+        "price": [
+          0.93653,
+          0.950272
+        ]
+      },
+      {
+        "tag": "F236",
+        "label": "Discount",
+        "ratio": [
+          0.236,
+          0.382
+        ],
+        "price": [
+          0.950272,
+          0.958774
+        ]
+      },
+      {
+        "tag": "F382",
+        "label": "Below Equilibrium",
+        "ratio": [
+          0.382,
+          0.5
+        ],
+        "price": [
+          0.958774,
+          0.965645
+        ]
+      },
+      {
+        "tag": "F5",
+        "label": "Above Equilibrium",
+        "ratio": [
+          0.5,
+          0.618
+        ],
+        "price": [
+          0.965645,
+          0.972516
+        ]
+      },
+      {
+        "tag": "F618",
+        "label": "Premium",
+        "ratio": [
+          0.618,
+          0.786
+        ],
+        "price": [
+          0.972516,
+          0.982299
+        ]
+      },
+      {
+        "tag": "F786",
+        "label": "Deep Premium",
+        "ratio": [
+          0.786,
+          1.0
+        ],
+        "price": [
+          0.982299,
+          0.99476
+        ]
+      }
+    ],
+    "current_zone": {
+      "tag": "F382",
+      "label": "Below Equilibrium",
+      "ratio": [
+        0.382,
+        0.5
+      ],
+      "price": [
+        0.958774,
+        0.965645
+      ],
+      "position_in_zone_pct": 80.0
+    },
+    "zone_index": 2,
+    "range_90_pct": 6.039,
+    "ratio_pos": 0.4764,
+    "breakout": false,
+    "degenerate": false,
+    "risk_model": {
+      "multiplier_k": 1.0,
+      "reason": "equilibrium_zone",
+      "min_width_gate_pct": 1.2
+    },
+    "labels": {
+      "fib_zone": "FIB F382 | Below Equilibrium",
+      "fib_position": "FIB 3/6 80% in F382",
+      "action": "BUY_LIMIT"
+    },
+    "fib_regime_label": "\ud83e\udded FIB F382 Below Equilibrium | \u23f3 W CONSOLIDATION RANGE"
+  },
+  "date": "2026-11-16"
+}
