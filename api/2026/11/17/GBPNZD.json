@@ -1,0 +1,283 @@
+{
+  "timeframe": "D",
+  "pair": "GBPNZD",
+  "current_price": 2.40054,
+  "ann_drift_pct": 11.56,
+  "ann_vol_pct": 4.54,
+  "range_90": [
+    2.38082,
+    2.43096
+  ],
+  "percentile_rank": 35.1,
+  "p_up": 64.9,
+  "p_down": 35.1,
+  "p_up_pct": 64.9,
+  "p_down_pct": 35.1,
+  "touch_upper_pct": 5.6,
+  "touch_lower_pct": 7.4,
+  "var_95": -0.0082,
+  "cvar_95": -0.0118,
+  "expected_price": 2.40586,
+  "regime": "\u26a1 D STRONG MOMENTUM",
+  "distribution": {
+    "source": "mc_terminal_paths",
+    "simulations": 5000,
+    "forecast": 5,
+    "student_t_df": 5,
+    "quantiles": {
+      "0.01": 2.36726,
+      "0.05": 2.38082,
+      "0.10": 2.38633,
+      "0.25": 2.39622,
+      "0.50": 2.40586,
+      "0.75": 2.41549,
+      "0.90": 2.42495,
+      "0.95": 2.43096,
+      "0.99": 2.44443
+    },
+    "mean": 2.40586,
+    "std": 0.01561,
+    "min": 2.33558,
+    "max": 2.48243,
+    "skew": -0.0129,
+    "kurtosis": 0.9887,
+    "degenerate": false
+  },
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-11-17T07:48:46.324246+00:00",
+  "fib": {
+    "schema_version": "1.1.0",
+    "levels": {
+      "fib_0": 2.38082,
+      "fib_23.6": 2.392653,
+      "fib_38.2": 2.399973,
+      "fib_50": 2.40589,
+      "fib_61.8": 2.411807,
+      "fib_78.6": 2.42023,
+      "fib_100": 2.43096
+    },
+    "zones": [
+      {
+        "tag": "F0",
+        "label": "Deep Discount",
+        "ratio": [
+          0.0,
+          0.236
+        ],
+        "price": [
+          2.38082,
+          2.392653
+        ]
+      },
+      {
+        "tag": "F236",
+        "label": "Discount",
+        "ratio": [
+          0.236,
+          0.382
+        ],
+        "price": [
+          2.392653,
+          2.399973
+        ]
+      },
+      {
+        "tag": "F382",
+        "label": "Below Equilibrium",
+        "ratio": [
+          0.382,
+          0.5
+        ],
+        "price": [
+          2.399973,
+          2.40589
+        ]
+      },
+      {
+        "tag": "F5",
+        "label": "Above Equilibrium",
+        "ratio": [
+          0.5,
+          0.618
+        ],
+        "price": [
+          2.40589,
+          2.411807
+        ]
+      },
+      {
+        "tag": "F618",
+        "label": "Premium",
+        "ratio": [
+          0.618,
+          0.786
+        ],
+        "price": [
+          2.411807,
+          2.42023
+        ]
+      },
+      {
+        "tag": "F786",
+        "label": "Deep Premium",
+        "ratio": [
+          0.786,
+          1.0
+        ],
+        "price": [
+          2.42023,
+          2.43096
+        ]
+      }
+    ],
+    "current_zone": {
+      "tag": "F382",
+      "label": "Below Equilibrium",
+      "ratio": [
+        0.382,
+        0.5
+      ],
+      "price": [
+        2.399973,
+        2.40589
+      ],
+      "position_in_zone_pct": 9.6
+    },
+    "zone_index": 2,
+    "range_90_pct": 2.089,
+    "ratio_pos": 0.3933,
+    "breakout": false,
+    "degenerate": false,
+    "risk_model": {
+      "multiplier_k": 1.0,
+      "reason": "equilibrium_zone",
+      "min_width_gate_pct": 1.2
+    },
+    "labels": {
+      "fib_zone": "FIB F382 | Below Equilibrium",
+      "fib_position": "FIB 3/6 10% in F382",
+      "action": "BUY_LIMIT"
+    },
+    "fib_regime_label": "\ud83e\udded FIB F382 Below Equilibrium | \u26a1 D STRONG MOMENTUM"
+  },
+  "prob_bands": {
+    "schema_version": "1.2.0",
+    "method": "equal_probability_mass",
+    "band_count": 5,
+    "target_mass": 0.2,
+    "bands": [
+      {
+        "index": 0,
+        "tag": "Q0-20",
+        "price_lo": 2.33558,
+        "price_hi": 2.39292,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 1,
+        "tag": "Q20-40",
+        "price_lo": 2.39292,
+        "price_hi": 2.402,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 2,
+        "tag": "Q40-60",
+        "price_lo": 2.402,
+        "price_hi": 2.40971,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 3,
+        "tag": "Q60-80",
+        "price_lo": 2.40971,
+        "price_hi": 2.41864,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 4,
+        "tag": "Q80-100",
+        "price_lo": 2.41864,
+        "price_hi": 2.48243,
+        "prob_mass": 0.2
+      }
+    ],
+    "current": {
+      "index": 1,
+      "tag": "Q20-40",
+      "price_lo": 2.39292,
+      "price_hi": 2.402,
+      "position_in_band_pct": 83.9
+    },
+    "band_index": 1,
+    "shape": {
+      "mean": 2.40586,
+      "median": 2.40586,
+      "mode": 2.40586,
+      "quantiles": {
+        "0.05": 2.38082,
+        "0.25": 2.39622,
+        "0.50": 2.40586,
+        "0.75": 2.41549,
+        "0.95": 2.43096
+      },
+      "skew": -0.0129,
+      "kurtosis": 0.9887,
+      "prob_below": 35.1,
+      "prob_above": 64.9
+    },
+    "degenerate": false,
+    "mode": "static_reference"
+  },
+  "belief": {
+    "schema_version": "1.2.0",
+    "states": [
+      "UP",
+      "DOWN",
+      "RANGE"
+    ],
+    "prior": {
+      "UP": 0.5207,
+      "DOWN": 0.2816,
+      "RANGE": 0.1977
+    },
+    "prior_source": "mc_p_up",
+    "evidence": [
+      {
+        "name": "regime",
+        "value": "\u26a1 D STRONG MOMENTUM",
+        "spread": 0.298,
+        "likelihood": {
+          "UP": 0.3333,
+          "DOWN": 0.3333,
+          "RANGE": 0.3333
+        }
+      }
+    ],
+    "likelihood": {
+      "UP": 0.3333,
+      "DOWN": 0.3333,
+      "RANGE": 0.3333
+    },
+    "posterior": {
+      "UP": 0.5207,
+      "DOWN": 0.2816,
+      "RANGE": 0.1977
+    },
+    "edge": {
+      "argmax": "UP",
+      "value": 0.5207,
+      "spread": 0.2391
+    },
+    "threshold_tau": 0.55,
+    "verdict": "NO_EDGE",
+    "advisory": true,
+    "decay_half_life_h": 24.0,
+    "generated_utc": "2026-11-17T07:48:46.324246+00:00",
+    "expires_utc": "2026-11-18T07:48:46.324246+00:00",
+    "mode": "static_reference"
+  },
+  "date": "2026-11-17"
+}
