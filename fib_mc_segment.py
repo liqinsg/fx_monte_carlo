@@ -22,6 +22,10 @@ from pathlib import Path
 
 MC_DIR = Path(__file__).resolve().parent / "mc_results"
 
+# This module's own payload schema. Never downgrade a file that already carries
+# a higher version (e.g. the probability annotation writes 1.2.0 afterwards).
+FIB_SCHEMA_VERSION = "1.1.0"
+
 # Fibonacci ratios: retracement/extension grid used for zone splitting
 FIB_RATIOS = [0.0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0]
 
@@ -166,6 +170,14 @@ def segment_pair(rec: dict, *, min_width_pct_gate: float = 1.2) -> dict:
     return rec
 
 
+def _version_tuple(version) -> tuple:
+    """'1.2.0' -> (1, 2, 0); non-numeric / missing -> () (treated as lowest)."""
+    try:
+        return tuple(int(part) for part in str(version).split("."))
+    except (TypeError, ValueError):
+        return ()
+
+
 def segment_mc_data(mc_data: dict, *, date: str | None = None, min_width_pct_gate: float = 1.2) -> dict:
     """Return an MC payload enriched with Fibonacci data, without file I/O.
 
@@ -184,7 +196,10 @@ def segment_mc_data(mc_data: dict, *, date: str | None = None, min_width_pct_gat
     metadata = segmented.setdefault("metadata", {})
     if not isinstance(metadata, dict):
         raise ValueError("MC data 'metadata' must be a dictionary")
-    metadata["schema_version"] = "1.1.0"
+    # Only fill in / normalize our own version; never downgrade a higher one
+    # (probability annotation may have already bumped metadata to 1.2.0).
+    if _version_tuple(metadata.get("schema_version")) < _version_tuple(FIB_SCHEMA_VERSION):
+        metadata["schema_version"] = FIB_SCHEMA_VERSION
     metadata["fib_segmentation"] = {
         "method": "Fibonacci grid on range_90",
         "ratios": FIB_RATIOS,

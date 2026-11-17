@@ -1,14 +1,15 @@
 # MC 概率标注体系 · 规格 v1.0（Schema 1.2.0）
 
-**Status:** DRAFT — 待 Owner 审核；审核通过并冻结后方可进入实现
+**Status:** FROZEN v1.0 — 已由 Owner 批准冻结（§12 冻结清单全部勾选）；Producer 侧实现已获授权
 **Version:** 1.0（对应 payload `schema_version = "1.2.0"`）
+**Revision:** r2 · 2026-11-17 —— 并入外部评审（Codex v1.0.1）有效意见，见 §13；正文仍以本文件为唯一真理源。
 **Project:** `fx_monte_carlo`
 **Created:** 2026-11-17
 **Scope:** 只定义标注体系（`distribution` / `prob_bands` / `belief`）的字段语义与契约。**不修改**任何现有字段、`fib` 块、算法与数据。实现授权与本文档审批分离。
 **Nature:** 实现契约草案，非架构评审、非代码。
 **上位依据:** 既有 payload（现为 schema 1.1.0）、[PHASE_1_DATA_CONTRACT_v1.0.md](PHASE_1_DATA_CONTRACT_v1.0.md) 的契约纪律（additive-only / no historical rewrite / fail-closed / 时间戳语义），与 [FIB_MC_DISCUSSION.md](FIB_MC_DISCUSSION.md) 的"中立分析提供者 → 多消费者"哲学。
 
-> 本文档不授权任何代码改动。所有"PROPOSED PRIOR"参数仅供 Owner 审批，非既定值。
+> **冻结说明：** 本文档 §9 参数已由 Owner 批准（见 §9 与 §12）。Producer 侧实现（`distribution` / `prob_bands` / `belief`）已获授权。Consumer 侧动态重算（[interface.py](../interface.py)）仍属 Phase 2，**需单独授权**。
 
 ---
 
@@ -19,6 +20,8 @@
 - `mc_results/` 中存在两类产物：早期**无标注**原始 MC，与近期使用 **Fibonacci 网格**标注（`fib` 块，schema 1.1.0）的产物。
 - MC 引擎本身即概率模型：每个 pair 已输出 `p_up` / `p_down` / `percentile_rank` / `range_90` / `var_95` / `cvar_95` / `touch_*` / `expected_price` / `regime`（见 [fx_monte_carlo.py](../fx_monte_carlo.py) `run_mc()`）。
 - Fib 标注以 `range_90` 为坐标，按**价格线性**比例 `[0,.236,.382,.5,.618,.786,1.0]` 切成 6 段（见 [fib_mc_segment.py](../fib_mc_segment.py)）。
+
+**基准产物（事实核对）**：本规格的 `1.1.0` 基准指现存 `mc_results/mc_D_all_pairs_20261117_0000.json`（`metadata.schema_version == "1.1.0"`，含 `fib_segmentation` 块）所代表的形态。上位契约 [PHASE_1_DATA_CONTRACT_v1.0.md](PHASE_1_DATA_CONTRACT_v1.0.md) 的落地状态以其自身文件为准；本规格只遵循其纪律，不改动它。
 
 ### 0.2 动机
 
@@ -56,7 +59,7 @@
 | 等概率带 | — | 使每带概率质量相等（$1/N$）的分割 |
 | 概率质量 | `prob_mass` | 某带内的概率占比，$\sum = 1$ |
 | 方向概率 | `p_up` / `p_down` | 终点高于/低于当前价的模拟比例（既有真理源） |
-| 概率差 | `spread` | $|p\_up - p\_down| / 100 \in [0,1]$，量化"方向强弱" |
+| 概率差 | `spread` | $\lvert p\_up - p\_down \rvert / 100 \in [0,1]$，量化"方向强弱" |
 | 先验 | `prior` | L2 初始状态分布，由 `p_up` 锚定 |
 | 似然 | `likelihood` | $P(E \mid S_i)$ |
 | 后验 | `posterior` | $P(S_i \mid E)$，归一化 |
@@ -64,6 +67,9 @@
 | 状态 | `states` | `{UP, DOWN, RANGE}` |
 
 > 观察：`regime` 与 `spread` 强正相关——盘整 ⇒ `spread≈0`；强动量 ⇒ `spread` 大。故 `regime` 作为 `spread` 的**离散佐证标签**，与 `p_up` **同源**，不引入第二真理源。
+
+> **`p_up` 平价归属（语义告诫）**：既有引擎 `p_up = count(final > current) / N`，`p_down = 100 − p_up`，故 `final == current` 的路径**计入 DOWN**。这是引擎既有事实，本规格**不改动**（P-1）。
+> **"锚定"定义**：归一化后的方向先验与 `p_up` / `p_down` **成正比**（非相等），比例由 RANGE 项与 `w_range` 调制；`p_up` 仍是方向概率的唯一真理源（P-2）。
 
 ---
 
@@ -100,7 +106,7 @@ Consumer (interface.py, Phase 2)
     "method": "prob_bands+belief",
     "band_count": 5,
     "states": ["UP", "DOWN", "RANGE"],
-    "threshold_tau": "<pending>",
+    "threshold_tau": 0.55,
     "mode": "static_reference"
   }
 }
@@ -112,7 +118,7 @@ Consumer (interface.py, Phase 2)
 | `annotation.method` | string | 是 | 标注方法标识。 |
 | `annotation.band_count` | int | 是 | L1 分带数（默认 5）。 |
 | `annotation.states` | array | 是 | L2 状态集。 |
-| `annotation.threshold_tau` | number | 是 | 置信阈值（§9 待审批）。 |
+| `annotation.threshold_tau` | number | 是 | 置信阈值（§9.2，冻结值 `0.55`）。 |
 | `annotation.mode` | string | 是 | 恒为 `"static_reference"`。 |
 
 ### 4.2 `distribution`（每 pair 新增 · 原料）
@@ -147,7 +153,7 @@ Consumer (interface.py, Phase 2)
 
 ### 4.3 `prob_bands`（L1 · 等概率带）
 
-由 `distribution` 确定性派生。
+由 `distribution` **确定性近似**派生（分位线性插值 + 经验众数；规则见 §4.3.1）。
 
 ```json
 "prob_bands": {
@@ -189,6 +195,22 @@ Consumer (interface.py, Phase 2)
 
 **与 fib 的本质区别**：fib 边界按**价格**线性均分；`prob_bands` 边界按**概率质量**均分。二者并行存在、互不覆盖。
 
+#### 4.3.1 派生规则（确定性近似 · 实现细则）
+
+由 `distribution.quantiles`（9 个键）确定性地派生，**不重跑模拟**：
+
+1. **分位函数** $Q(p)$：以已存分位点为锚，两端锚定 `distribution.min`（$p{=}0$）与 `distribution.max`（$p{=}1$），中间对相邻已存分位做**线性插值**。
+2. **带边界**：$b_k = Q(k/N)$，$k = 0 \dots N$（$N$ = `band_count`）。相邻带**共享端点**，故 `bands[i].price_hi == bands[i+1].price_lo`；首带下界 = `min`，末带上界 = `max`。
+3. **`prob_mass`**：按构造恒为 `target_mass = 1/N`（**构造值，非实测**），故 $\sum = 1$，**不受分位四舍五入影响**。
+4. **`band_index`**：唯一真理源是 `percentile_rank`（$P(\text{final} \le \text{current})$）。`band_index = clamp(⌊percentile_rank / (100/N)⌋, 0, N−1)`。
+5. **`current.position_in_band_pct`**：$(\text{current} - lo)/(hi - lo) \times 100$，clamp 到 `[0,100]`。
+6. **`shape.mode`**：由分位点无原始样本可算真众数，采用 **Pearson 经验式** $\text{mode} \approx 3 \cdot \text{median} - 2 \cdot \text{mean}$。
+7. **`shape.prob_below` / `prob_above`**：分别取 `percentile_rank` 与 $100 - \text{percentile_rank}$。
+8. **`degenerate`**：继承 `distribution.degenerate`；若派生边界不可分辨（非严格递增）则亦置 `true`。
+9. **端点归属**：各带定义为半开区间 $[price\_lo,\ price\_hi)$，仅**末带**取闭区间 $[price\_lo,\ price\_hi]$。
+10. **`current` 定带**：一律由 `percentile_rank` clamp 定带（**不依赖几何查找**）；若几何位置与 `percentile_rank` 冲突，**以 `percentile_rank` 为准**。`position_in_band_pct` clamp 到 `[0,100]`，故**不存在**"无带可映射"的情形。
+11. **退化豁免**：当 `degenerate == true` 时，band 几何不可分辨（`price_lo == price_hi`），此时 **V-3 的 `price_lo < price_hi` 豁免**，且 `belief.verdict` 必为 `NO_EDGE`（§7）。
+
 ### 4.4 `belief`（L2 · 贝叶斯信念 · 参考快照）
 
 Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"`。
@@ -222,21 +244,35 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 | `prior` | object | 是 | 归一化先验，**锚定** `p_up`（§9.1）。 |
 | `prior_source` | string | 是 | 先验来源标识（`"mc_p_up"`）。 |
 | `evidence[]` | array | 是 | 证据列表；每条含 `name` / `value` / `likelihood`。 |
-| `likelihood` | object | 是 | 合成似然（归一化）。 |
+| `likelihood` | object | 是 | 合成似然，以**归一化权重**存储（用于贝叶斯相乘）；**非线性意义上**的概率 $P(E\mid S_i)$。 |
 | `posterior` | object | 是 | 后验（归一化）。 |
 | `edge` | object | 是 | `argmax` 与置信度、`spread`。 |
-| `threshold_tau` | number | 是 | 判定阈值（§9 待审批）。 |
+| `threshold_tau` | number | 是 | 判定阈值（§9.2，冻结值 `0.55`）。 |
 | `verdict` | enum | 是 | `UP` / `DOWN` / `RANGE` / `NO_EDGE`。 |
 | `advisory` | bool | 是 | 恒 `true`，标记非真理源。 |
-| `decay_half_life_h` | number | 是 | 时效衰减半衰期（§9 待审批）。 |
+| `decay_half_life_h` | number | 是 | 时效衰减半衰期（§9.3，冻结值 `24`）。 |
 | `generated_utc` / `expires_utc` | string | 是 | ISO-8601 UTC（`+00:00`）。 |
 | `mode` | string | 是 | `"static_reference"`（Producer）或 `"dynamic"`（Consumer）。 |
+
+#### 4.4.1 派生规则（Producer 侧 · 无外部指标）
+
+方向与动量强弱是**两个概念**：`regime` 只表征动量强弱，**不含方向信息**。因此在 Producer 侧（尚无外部指标）似然退化：
+
+1. **先验 `prior`**：按 §9.1 由 `p_up` / `p_down` / `spread` / `w_range(regime)` 推导并归一化（`prior_source = "mc_p_up"`）。
+2. **似然 `likelihood`**：**恒等退化为均匀** `{UP: 1/3, DOWN: 1/3, RANGE: 1/3}`——即 `regime` 不作为方向的证据；其"强弱"信息已前置进入先验的 `w_range`。`evidence` 仍列出 `regime` 以留痕，但其 `likelihood` 为均匀值。
+3. **后验 `posterior`**：$P(S_i) \propto \text{prior}_i \cdot \text{likelihood}_i$，归一化。均匀似然下 $\text{posterior} = \text{prior}$（L2 不引入第二真理源）。
+4. **`edge`**：`argmax = argmax(posterior)`；`value = max(posterior)`；`spread = max(posterior) − 次大(posterior)`（非负置信边际）。
+5. **`verdict`**（§7 Fail-closed）：`degenerate` / 窄区间（`range_90_pct < 1.2`）/ `max(posterior) < threshold_tau` 任一成立 → `NO_EDGE`；否则取 `argmax`。
+6. **时效**：`expires_utc = generated_utc + decay_half_life_h` 小时。
+
+> Phase 2（Consumer）在具备外部指标（RSI / MA / 成交量）后，用真实标定的似然替换均匀退化，并按 §9.3 做时效衰减。
 
 ### 4.5 冻结部分（原样保留）
 
 - 既有 **21 个** pair 字段语义不变。
 - `fib` 块（schema `1.1.0`）**保留不动**，本规格不引用、不修改、不删除它。
 - `regime` 字段保留；L2 将其作为证据之一。
+- **打标顺序（顺序要求）**：`fib` 打标（1.1.0）**先于**概率打标（1.2.0）；概率打标写入的 `schema_version="1.2.0"` 为终值。任一打标阶段都**不得下调**既有 `schema_version`（见 §10）。
 
 ### 4.6 目标结构示意（真实字段锚定）
 
@@ -296,8 +332,8 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 |----|--------|
 | V-1 | `distribution.quantiles` 键严格递增，值有限且 `> 0`。 |
 | V-2 | `distribution` 各矩有限（无 `NaN` / `Inf`）。 |
-| V-3 | `prob_bands.bands` 按 `index` 升序；每条 `price_lo < price_hi`；相邻端点相接；首尾覆盖 `distribution` 支撑区间。 |
-| V-4 | `Σ bands[i].prob_mass ≈ 1`（容差 ≤ 0.01）；`|prob_mass − target_mass| ≤ 容差`。 |
+| V-3 | `prob_bands.bands` 按 `index` 升序；每条 `price_lo < price_hi`（`degenerate == true` 时**豁免**，见 §4.3.1-11）；相邻端点相接；首尾覆盖 `distribution` 支撑区间。 |
+| V-4 | `Σ bands[i].prob_mass ≈ 1`（容差 ≤ 0.01）；$\lvert prob\_mass - target\_mass \rvert \le$ 容差。 |
 | V-5 | `band_index ∈ [0, band_count-1]`；`current.position_in_band_pct ∈ [0,100]`；`band_index` 与 `percentile_rank` 自洽。 |
 | V-6 | `belief.prior` / `likelihood` / `posterior` 各自 `Σ ≈ 1`（容差 ≤ 0.01），各分量 `∈ [0,1]`。 |
 | V-7 | `edge.argmax == argmax(posterior)`。 |
@@ -317,6 +353,8 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 | `now_utc > expires_utc`（过期） | 消费端拒绝 | 标记过期，**不得**当作当前判断。 |
 | 原料缺失 / 校验失败 | `NO_EDGE` | 保守降级。 |
 
+> **判定优先级（自上而下，任一命中即 `NO_EDGE`）**：`degenerate` → 窄区间（`range_90_pct < 1.2`）→ 后验平坦（`max(posterior) < threshold_tau`）→ 否则取 `argmax`。
+
 ---
 
 ## 8. 时间与时效语义
@@ -331,9 +369,9 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 
 ---
 
-## 9. 标定参数（PROPOSED PRIOR — 待 Owner 审批）
+## 9. 标定参数（FROZEN v1.0）
 
-> 以下均为先验建议值，**非既定**。请 Owner 审批或修订。Project 原则：参数应尽量由数据/Demo 验证，不凭直觉死定。
+> 以下参数已由 Owner 批准并冻结，为 Producer 侧既定实现值。Phase 2 引入外部指标标定后若需调整，须另行修订本表并重新冻结。
 
 ### 9.1 先验锚定（由 `p_up` + `spread` + `regime` 推导）
 
@@ -345,7 +383,7 @@ raw_RANGE  = (1 - spread)^gamma * w_range(regime)  # 单调递减地随 spread �
 prior_i    = raw_i / Σ_j raw_j                     # 归一化
 ```
 
-`w_range(regime)` 建议初值（待审批）：
+`w_range(regime)` 冻结值：
 
 | regime 倾向 | `w_range` |
 |-------------|-----------|
@@ -354,25 +392,34 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 | OVERBOUGHT / OVERSOLD | 0.7 |
 | STRONG MOMENTUM | 0.5 |
 
-`gamma` 建议初值：`2`。
+`gamma` 冻结值：`2`。
+
+`w_range(regime)` 匹配规则：对 `regime` 字符串**先大写、再子串匹配**；命中顺序即上表顺序（CONSOLIDATION RANGE → NEUTRAL → OVERBOUGHT → OVERSOLD → STRONG MOMENTUM）。带时间框架前缀的标签（如 `"⚡ D STRONG MOMENTUM"`）不影响匹配；未命中回退 `NEUTRAL = 1.0`。
 
 > 该式即体现你的观察：盘整 ⇒ `spread≈0` ⇒ RANGE 先验高；强动量 ⇒ `spread` 大 ⇒ RANGE 先验收缩、方向先验突出。
 
 ### 9.2 似然与阈值
 
-- 似然来源：外部指标（RSI / MA / 成交量）+ `regime`；具体数值需标定，**待审批**。
-- `threshold_tau` 建议初值：`0.55`（三态均匀基线为 `0.333`）。**待审批**。
+- **Producer 侧（冻结）**：无外部指标，似然**恒等退化为均匀** `{UP: 1/3, DOWN: 1/3, RANGE: 1/3}`，后验 == 先验（§4.4.1）。
+- **Phase 2**：似然来源为外部指标（RSI / MA / 成交量）+ `regime`；具体数值表与标定方法留待 Phase 2 单独授权标定。
+- `threshold_tau` 冻结值：`0.55`（三态均匀基线为 `0.333`）。
 
 ### 9.3 时效衰减
 
-- `decay_half_life_h` 建议初值：`24`（Daily）。**待审批**。
-- 衰减公式建议：`posterior_t ∝ posterior_0 · 2^(−Δt / half_life)` 后重新归一化；矛盾证据到达时同样触发回落，避免判断固化。
+- `decay_half_life_h` 冻结值：`24`（Daily）。
+- **衰减（软性回落）**：令 $\lambda = 2^{-\Delta t / \text{half\_life}} \in (0,1]$（$\Delta t$ = 自 `generated_utc` 起的小时数），则
+  $posterior_t \propto \lambda \cdot posterior_0 + (1-\lambda) \cdot prior$，再归一化。
+  即证据带来的相对增益随时间**退回到 MC 锚定先验** `prior`。
+  **注（r2 修正）**：旧式 `posterior_0 · 2^(−Δt/half_life)` 对所有状态同乘同一系数，归一化后**完全抵消、不会回落**；必须引入基线项 `prior` 才有效。
+- **硬性过期 vs 软性衰减**：`expires_utc` 是**硬 TTL**（`generated_utc + half_life` 小时），超时即弃用（§7）；衰减是 TTL 内的**软性**权重调节。两者由此不冲突：$\Delta t = 0 \Rightarrow \lambda = 1$（无回落）；$\Delta t = \text{half\_life} \Rightarrow \lambda = 1/2$（回落到 `prior` 与后验的中值）；$\Delta t \ge \text{half\_life}$（过期）后直接拒绝。
+- Producer 侧 `expires_utc = generated_utc + 24h`；Consumer 超时即弃用（§7）。
 
 ---
 
 ## 10. 向后兼容与边界
 
 - **Additive only**：`schema_version` 升 `1.2.0`；既有字段与 `fib` 保留，`range_90` 语义不变。
+- **打标顺序与版本单调性**：Producer 内 `fib`（1.1.0）在前、概率（1.2.0）在后；`fib_mc_segment.py` 单独运行（`process()`）时**不得下调**已存在的更高 `schema_version`（r2 已修，见 §13）。
 - **向前生效**：仅新产物带新增块；历史产物不改写（P-5）。
 - **消费兼容**：消费者必须容忍 `distribution` / `prob_bands` / `belief` 缺失（早期产物）——按 §7 降级，不报错。
 - **不依赖 Phase 1 冻结**：本规格独立于 [PHASE_1_DATA_CONTRACT_v1.0.md](PHASE_1_DATA_CONTRACT_v1.0.md)，但遵循其 additive / no-rewrite / UTC / fail-closed 纪律。
@@ -392,23 +439,57 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 
 ## 12. 开放项与冻结清单
 
-### 12.1 开放项（需 Owner 决定）
+### 12.1 开放项（已关闭）
 
-- [ ] `band_count` 最终取值（建议 5）。
-- [ ] `threshold_tau` 终值（建议 0.55）。
-- [ ] `gamma` 与 `w_range` 终值（§9.1）。
-- [ ] 似然数值表与其标定方法（§9.2）。
-- [ ] `decay_half_life_h` 终值（建议 24h）。
-- [ ] 外部指标清单（RSI / MA / 成交量 …）与各自数据来源。
-- [ ] Consumer 接口函数签名（Phase 2）。
+- [x] `band_count` 最终取值 → `5`（冻结）。
+- [x] `threshold_tau` 终值 → `0.55`（冻结）。
+- [x] `gamma` 与 `w_range` 终值 → `gamma = 2`；`w_range` 见 §9.1（冻结）。
+- [x] 似然数值表与其标定方法 → Producer 侧**恒等退化为均匀 `1/3`**；真实外部指标标定**推迟至 Phase 2**（冻结）。
+- [x] `decay_half_life_h` 终值 → `24h`（冻结）。
+- [x] 外部指标清单（RSI / MA / 成交量 …）与各自数据来源 → **推迟至 Phase 2**（本规格不实现）。
+- [x] Consumer 接口函数签名 → **Phase 2 单独授权时定义**。
 
 ### 12.2 冻结清单
 
-本文档成为 **FROZEN v1.0** 需满足：
+本文档成为 **FROZEN v1.0** 需满足（全部完成）：
 
-- [ ] §9 全部 PROPOSED PRIOR 经 Owner 审批或修订。
-- [ ] §12.1 开放项关闭。
-- [ ] Owner 确认 §4 Schema 与 §6 不变量可实施。
-- [ ] 明确实现授权范围（Producer 侧 / Consumer 侧分开授权）。
+- [x] §9 全部参数经 Owner 审批（§9 已改标 FROZEN）。
+- [x] §12.1 开放项关闭。
+- [x] Owner 确认 §4 Schema 与 §6 不变量可实施。
+- [x] 明确实现授权范围：**Producer 侧已授权**；Consumer 侧（[interface.py](../interface.py)）待 Phase 2 单独授权。
 
-**在以上勾选完成前，不进入实现。**
+**冻结签署：** Owner（仅 Owner 可签署；Agent / 第三方模型不得代签）。
+**冻结日期：** 2026-11-17
+
+---
+
+## 13. 修订记录与外部评审处置（r2 · 2026-11-17）
+
+### 13.1 修订记录
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| r1 | 2026-11-17 | 初版冻结（§9 参数固化、§12 勾选、Owner 签署）。 |
+| r2 | 2026-11-17 | 并入外部评审（Codex `v1.0.1`）有效意见；修正 §9.3 衰减公式；补 §4.3.1-9/10/11、§7 判定优先级、§9.1 匹配规则、§10 版本单调性；修 §2/V-4 表格转义。**正文以本文件为唯一真理源。** |
+
+### 13.2 外部评审处置
+
+来源：`docs/MC_PROB_ANNOTATION_SPEC_v1.0.1.md`（Codex 生成）。注意：该文件正文实为**冻结前草稿的回滚**（回退了 r1 的冻结），其净增量为 10 条评审意见；经评审后该平行文件**已废弃并删除**，以消除双真理源。逐条处置：
+
+| # | 评审意见 | 处置 |
+|---|----------|------|
+| 1 | 需澄清 `1.1.0` 基准与 Phase 1 契约落地状态 | 采纳 → §0.1「基准产物（事实核对）」 |
+| 2 | 9 分位无法唯一确定带边界/众数；四舍五入对 `prob_mass` 容差的影响 | 部分采纳 → §4.3 改称「确定性近似」；§4.3.1-3 声明 `prob_mass` 为**构造值**，不受取整影响 |
+| 3 | 退化零宽带违反 `price_lo < price_hi`；端点归属；`current` 落在支撑区间外 | 采纳 → §4.3.1-9/10/11 + V-3 豁免 |
+| 4 | `w_range` 匹配规则；`final == current` 的归属 | 采纳 → §9.1 匹配规则 + §2 平价归属告诫（**不改引擎**，P-1） |
+| 5 | `regime` 与 `p_up` 同源 ⇒ 重复计权 | **不成立 / 已解决** → §4.4.1 已定 Producer 侧似然恒等退化均匀，`regime` 不作方向证据 |
+| 6 | 多样证据聚合/独立性假设；「归一化似然」术语 | 部分采纳 → §4.4 `likelihood` 语义澄清；聚合规则属 Phase 2 |
+| 7 | 旧衰减式经归一化后恒等、**不会回落** | **采纳（数学修正）** → §9.3 引入基线项 `prior`，并调和硬 TTL 与软衰减 |
+| 8 | 「窄区间」缺阈值定义 | 已解决 → §4.4.1-5 冻结 `range_90_pct < 1.2` |
+| 9 | 占位符 `"<pending>"` 与「number 必填」自相矛盾 | 已解决 → §4.1 示例已为 `0.55` |
+| 10 | `fib_mc_segment.py` 会把 metadata `schema_version` 写回 `1.1.0` | 采纳（含**代码修复**）→ §4.5 顺序要求 + §10；[fib_mc_segment.py](../fib_mc_segment.py) 已改为**不向下覆盖**既有更高版本 |
+
+### 13.3 一并修复的文档缺陷
+
+- §2 `spread` 行与 §6 V-4 行的裸 `|` 破坏表格渲染（V-4 后半句曾被截断）→ 已转义为 `\lvert … \rvert`。
+- 删除平行文件 `docs/MC_PROB_ANNOTATION_SPEC_v1.0.1.md`，消除双真理源。

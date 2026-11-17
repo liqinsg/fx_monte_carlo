@@ -56,6 +56,12 @@ except ImportError as exc:
     raise
 
 try:
+    from prob_mc_segment import build_distribution, segment_prob_data
+except ImportError as exc:
+    logger.exception("Unable to import probability annotation")
+    raise
+
+try:
     from utils.mc_loader_local import (
         log_mc_observation,
         resolve_pending_mc_observations,
@@ -328,6 +334,14 @@ def run_mc(pair: str, day_str: str):
 
     dec = 3 if "JPY" in pair else 5
 
+    distribution = build_distribution(
+        final,
+        simulations=SIMULATIONS,
+        forecast=forecast,
+        student_t_df=STUDENT_T_DF,
+        decimals=dec,
+    )
+
     return {
         "timeframe": TF,
         "pair": pair,
@@ -346,6 +360,7 @@ def run_mc(pair: str, day_str: str):
         "cvar_95": round(cvar_95, 4),
         "expected_price": round(float(np.mean(final)), dec),
         "regime": regime,
+        "distribution": distribution,
         "lookback": lookback,
         "forecast": forecast,
         "simulations": SIMULATIONS,
@@ -474,6 +489,7 @@ def main():
         "results": pairs_results_map,
     }
     batch_payload = segment_mc_data(batch_payload, date=now_dt.strftime("%Y%m%d"))
+    batch_payload = segment_prob_data(batch_payload)
 
     unified_filename = f"mc_{TF}_all_pairs_{now_str}.json"
     save_batch_mc_safely(
