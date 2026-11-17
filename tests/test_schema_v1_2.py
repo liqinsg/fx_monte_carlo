@@ -230,10 +230,56 @@ def test_segment_prob_data_is_additive_and_metadata(synthetic_record):
         assert rec[key] == value, f"既有字段 {key} 被改动"
 
 
-def test_annotate_pair_without_distribution_is_noop():
+def test_annotate_pair_without_distribution_is_rejected():
+    """评审 #2：缺料必须 fail-closed 拒绝，而不是静默 no-op。"""
     rec = {"pair": "EURUSD=X", "current_price": 1.1, "p_up": 50.0, "p_down": 50.0,
            "percentile_rank": 50.0, "regime": "🔹 D NEUTRAL"}
-    assert annotate_pair(dict(rec)) == rec, "无原料时应原样返回（fail-closed）"
+    with pytest.raises(ValueError):
+        annotate_pair(dict(rec))
+
+
+def test_segment_prob_data_rejects_payload_without_distribution():
+    """评审 #2：任一 pair 缺 distribution ⇒ 整包拒绝，绝不产出假标 1.2.0 的 payload。"""
+    payload = {
+        "metadata": {"schema_version": "1.1.0", "fib_segmentation": {"x": 1}},
+        "results": {"EURUSD=X": {"pair": "EURUSD=X", "current_price": 1.1,
+                                 "p_up": 50.0, "p_down": 50.0, "regime": "🔹 D NEUTRAL"}},
+    }
+    with pytest.raises(ValueError):
+        segment_prob_data(payload)
+
+
+def test_segment_prob_data_does_not_downgrade_schema(synthetic_record):
+    """评审 #1：不得把已存在的更高 schema_version 写回 1.2.0。"""
+    payload = {
+        "metadata": {"schema_version": "1.3.0", "annotation": {"band_count": 5}},
+        "results": {"EURUSD=X": json.loads(json.dumps(synthetic_record))},
+    }
+    out = segment_prob_data(payload)
+
+    assert out["metadata"]["schema_version"] == "1.3.0", "不得向下覆盖更高版本"
+    assert out["metadata"]["annotation"]["band_count"] == 5
+    rec = out["results"]["EURUSD=X"]
+    assert "prob_bands" in rec and "belief" in rec
+
+
+def test_belief_rejects_naive_and_invalid_timestamps():
+    """评审 #6：裸/非法时间戳必须报错，不得静默造时间或臆断时区。"""
+    with pytest.raises(ValueError):
+        derive_belief(38.6, 61.4, "🔹 D NEUTRAL", generated_utc="2026-11-17T00:00:04")
+    with pytest.raises(ValueError):
+        derive_belief(38.6, 61.4, "🔹 D NEUTRAL", generated_utc="not-a-timestamp")
+    with pytest.raises(ValueError):
+        derive_belief(38.6, 61.4, "🔹 D NEUTRAL", generated_utc="")
+
+
+def test_belief_normalizes_offset_to_utc():
+    """带偏移量的合法时间戳被归一化到 UTC，expires 严格晚于 generated。"""
+    belief = derive_belief(
+        38.6, 61.4, "🔹 D NEUTRAL", generated_utc="2026-11-17T08:00:00+08:00"
+    )
+    assert belief["generated_utc"] == "2026-11-17T00:00:00+00:00"
+    assert belief["expires_utc"] == "2026-11-18T00:00:00+00:00"
 
 
 def test_fib_then_prob_pipeline_keeps_fib_and_bumps_schema(synthetic_record):

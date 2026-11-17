@@ -54,6 +54,14 @@ DIST_QUANTILE_KEYS = ["0.01", "0.05", "0.10", "0.25", "0.50", "0.75", "0.90", "0
 SHAPE_QUANTILE_KEYS = ["0.05", "0.25", "0.50", "0.75", "0.95"]
 
 
+def _version_tuple(version: Any) -> tuple:
+    """'1.2.0' -> (1, 2, 0); non-numeric / missing -> () (treated as lowest)."""
+    try:
+        return tuple(int(part) for part in str(version).split("."))
+    except (TypeError, ValueError):
+        return ()
+
+
 def w_range_for(regime: Any) -> float:
     """regime 字符串 → RANGE 先验权重；未知一律回退 NEUTRAL 权重 1.0。"""
     if not regime:
@@ -246,14 +254,24 @@ def _normalize(raw: Dict[str, float], decimals: int = 4) -> Dict[str, float]:
     return {k: round(v / total, decimals) for k, v in raw.items()}
 
 
-def _expires_utc(generated_utc: str, half_life_h: float) -> str:
+def _utc_datetime(value: Any, *, field: str) -> datetime:
+    """解析必须带显式偏移量的 ISO-8601 时间戳，并归一化到 UTC。
+
+    Fail-closed（§8 UTC 时间戳契约）：缺失 / 非法 / 裸（naive）时间戳一律报错，
+    **不得**静默替换为当前时间或臆断时区。
+    """
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be a non-empty ISO-8601 string")
     try:
-        dt = datetime.fromisoformat(generated_utc)
-    except (TypeError, ValueError):
-        dt = datetime.now(timezone.utc)
+        dt = datetime.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError(f"{field} is not a valid ISO-8601 timestamp: {value!r}") from exc
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return (dt + timedelta(hours=float(half_life_h))).isoformat()
+        raise ValueError(
+            f"{field} must carry an explicit UTC offset "
+            f"(naive timestamp rejected): {value!r}"
+        )
+    return dt.astimezone(timezone.utc)
 
 
 def derive_belief(
@@ -305,7 +323,13 @@ def derive_belief(
     else:
         verdict = order[0]
 
-    generated = generated_utc or datetime.now(timezone.utc).isoformat()
+    generated = (
+        generated_utc if generated_utc is not None
+        else datetime.now(timezone.utc).isoformat()
+    )
+    generated_dt = _utc_datetime(generated, field="generated_utc")
+    generated = generated_dt.isoformat()
+    expires = (generated_dt + timedelta(hours=float(half_life_h))).isoformat()
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -321,7 +345,7 @@ def derive_belief(
         "advisory": True,
         "decay_half_life_h": half_life_h,
         "generated_utc": generated,
-        "expires_utc": _expires_utc(generated, half_life_h),
+        "expires_utc": expires,
         "mode": "static_reference",
     }
 
@@ -332,8 +356,13 @@ def derive_belief(
 def annotate_pair(rec: Dict[str, Any], *, band_count: int = BAND_COUNT) -> Dict[str, Any]:
     distribution = rec.get("distribution")
     if not isinstance(distribution, dict):
-        # 无原料（早期 / 手工产物）→ 不产出 L1/L2，保持 fail-closed
-        return rec
+        # 无原料（早期 / 手工产物）→ 拒绝，而非静默 no-op。
+        # 若此处放过，调用方仍会把整包标成 1.2.0，产生「假标 1.2.0」的非法 payload（评审 #2）。
+        raise ValueError(
+            f"pair {rec.get('pair')!r} has no 'distribution' raw material; "
+            "refusing to annotate (fail-closed). Reject the payload instead of "
+            "producing a falsely-labeled 1.2.0 record."
+        )
 
     decimals = 3 if "JPY" in str(rec.get("pair", "")) else 5
     current_price = float(rec["current_price"])
@@ -368,6 +397,8 @@ def segment_prob_data(mc_data: Dict[str, Any], *, band_count: int = BAND_COUNT) 
     """返回追加了概率标注的 MC payload；输入保持不变（deepcopy）。
 
     输入形状与 fib_mc_segment.segment_mc_data 相同：``metadata`` + ``results``。
+    任一 pair 缺少 ``distribution`` 原料即整体拒绝（fail-closed），避免产生
+    「被误标为 1.2.0」的 payload。
     """
     if not isinstance(mc_data, dict) or not isinstance(mc_data.get("results"), dict):
         raise ValueError("MC data must be a dict containing a 'results' mapping")
@@ -381,7 +412,9 @@ def segment_prob_data(mc_data: Dict[str, Any], *, band_count: int = BAND_COUNT) 
     metadata = segmented.setdefault("metadata", {})
     if not isinstance(metadata, dict):
         raise ValueError("MC data 'metadata' must be a dictionary")
-    metadata["schema_version"] = SCHEMA_VERSION
+    # 版本单调：只补不降。不得把已存在的更高 schema_version 写回 1.2.0（评审 #1）。
+    if _version_tuple(metadata.get("schema_version")) < _version_tuple(SCHEMA_VERSION):
+        metadata["schema_version"] = SCHEMA_VERSION
     metadata["annotation"] = {
         "method": "prob_bands+belief",
         "band_count": band_count,

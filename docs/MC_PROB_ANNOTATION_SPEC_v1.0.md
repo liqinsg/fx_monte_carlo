@@ -2,7 +2,7 @@
 
 **Status:** FROZEN v1.0 — 已由 Owner 批准冻结（§12 冻结清单全部勾选）；Producer 侧实现已获授权
 **Version:** 1.0（对应 payload `schema_version = "1.2.0"`）
-**Revision:** r2 · 2026-11-17 —— 并入外部评审（Codex v1.0.1）有效意见，见 §13；正文仍以本文件为唯一真理源。
+**Revision:** r3 · 2026-11-17 —— 并入第二轮外部评审（Codex，P1–P3）有效意见，见 §13.4；此前 r2 见 §13.1。正文仍以本文件为唯一真理源。
 **Project:** `fx_monte_carlo`
 **Created:** 2026-11-17
 **Scope:** 只定义标注体系（`distribution` / `prob_bands` / `belief`）的字段语义与契约。**不修改**任何现有字段、`fib` 块、算法与数据。实现授权与本文档审批分离。
@@ -21,14 +21,14 @@
 - MC 引擎本身即概率模型：每个 pair 已输出 `p_up` / `p_down` / `percentile_rank` / `range_90` / `var_95` / `cvar_95` / `touch_*` / `expected_price` / `regime`（见 [fx_monte_carlo.py](../fx_monte_carlo.py) `run_mc()`）。
 - Fib 标注以 `range_90` 为坐标，按**价格线性**比例 `[0,.236,.382,.5,.618,.786,1.0]` 切成 6 段（见 [fib_mc_segment.py](../fib_mc_segment.py)）。
 
-**基准产物（事实核对）**：本规格的 `1.1.0` 基准指现存 `mc_results/mc_D_all_pairs_20261117_0000.json`（`metadata.schema_version == "1.1.0"`，含 `fib_segmentation` 块）所代表的形态。上位契约 [PHASE_1_DATA_CONTRACT_v1.0.md](PHASE_1_DATA_CONTRACT_v1.0.md) 的落地状态以其自身文件为准；本规格只遵循其纪律，不改动它。
+**基准产物（事实核对）**：本规格的 `1.1.0` 基准由其**形态**定义，而非某个具体文件——即任一由 [fib_mc_segment.py](../fib_mc_segment.py) 产出的 `mc_results/mc_{D,W,M}_all_pairs_*.json`：`metadata.schema_version == "1.1.0"` 且含 `fib_segmentation` 块与每 pair 的 `fib` 子块。本地检出所见的 `mc_results/mc_D_all_pairs_20261117_0000.json` 即属此类（`schema_version == "1.1.0"`，含 `fib_segmentation`）。注意 `mc_results/` 为**生成产物**（受 `max_history_files` 上限轮转），故本规格**不依赖**任何具体文件在任一检出中留存。上位契约 [PHASE_1_DATA_CONTRACT_v1.0.md](PHASE_1_DATA_CONTRACT_v1.0.md) 的落地状态以其自身文件为准；本规格只遵循其纪律，不改动它。
 
 ### 0.2 动机
 
 既然 MC 是概率模型，标注就应以**概率**而非**几何**组织。Fib 的线性网格与概率分布无关，属于"直线"切分。本规格引入**概率（弯曲）**标注：
 
 1. **L1 概率分位带**：以 MC 终值分布的**等概率质量**切带，边界由概率密度决定（真正"弯曲"）。
-2. **L2 贝叶斯信念层**：以 MC 的 `p_up` 为**先验锚点**，用 `regime` 与外部指标做证据更新，得到 advisory 的方向信念。
+2. **L2 贝叶斯信念层**：以 MC 的 `p_up` 为**先验锚点**。Producer 侧无外部指标，似然恒等退化为均匀（`regime` 仅作**上下文**、不作方向证据，§4.4.1）；Phase 2 再由 Consumer 引入外部指标做真实证据更新，得到 advisory 的方向信念。
 
 ### 0.3 关键定位：静态参考 vs 动态计算
 
@@ -61,7 +61,7 @@
 | 方向概率 | `p_up` / `p_down` | 终点高于/低于当前价的模拟比例（既有真理源） |
 | 概率差 | `spread` | $\lvert p\_up - p\_down \rvert / 100 \in [0,1]$，量化"方向强弱" |
 | 先验 | `prior` | L2 初始状态分布，由 `p_up` 锚定 |
-| 似然 | `likelihood` | $P(E \mid S_i)$ |
+| 似然 | `likelihood` | $P(E \mid S_i)$；**存储为归一化权重**（§4.4）。 |
 | 后验 | `posterior` | $P(S_i \mid E)$，归一化 |
 | 置信阈值 | `threshold_tau` | 后验达到即判定的阈值 |
 | 状态 | `states` | `{UP, DOWN, RANGE}` |
@@ -244,7 +244,7 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 | `prior` | object | 是 | 归一化先验，**锚定** `p_up`（§9.1）。 |
 | `prior_source` | string | 是 | 先验来源标识（`"mc_p_up"`）。 |
 | `evidence[]` | array | 是 | 证据列表；每条含 `name` / `value` / `likelihood`。 |
-| `likelihood` | object | 是 | 合成似然，以**归一化权重**存储（用于贝叶斯相乘）；**非线性意义上**的概率 $P(E\mid S_i)$。 |
+| `likelihood` | object | 是 | 合成似然，以**归一化权重**存储（用于贝叶斯相乘）；Producer 侧恒等退化为均匀 `1/3`（§4.4.1），**不作方向证据**。 |
 | `posterior` | object | 是 | 后验（归一化）。 |
 | `edge` | object | 是 | `argmax` 与置信度、`spread`。 |
 | `threshold_tau` | number | 是 | 判定阈值（§9.2，冻结值 `0.55`）。 |
@@ -271,12 +271,12 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 
 - 既有 **21 个** pair 字段语义不变。
 - `fib` 块（schema `1.1.0`）**保留不动**，本规格不引用、不修改、不删除它。
-- `regime` 字段保留；L2 将其作为证据之一。
-- **打标顺序（顺序要求）**：`fib` 打标（1.1.0）**先于**概率打标（1.2.0）；概率打标写入的 `schema_version="1.2.0"` 为终值。任一打标阶段都**不得下调**既有 `schema_version`（见 §10）。
+- `regime` 字段保留；L2 将其作为**上下文**记录（在 `evidence` 中留痕），其"强弱"信息仅进入先验的 RANGE 权重 `w_range`（§9.1），**不作为方向的证据**——Producer 侧似然恒等退化为均匀（§4.4.1），故 `regime` 不改变后验的方向。
+- **打标顺序（顺序要求）**：`fib` 打标（1.1.0）**先于**概率打标（1.2.0）。两个阶段都**只补不降**：仅当既有 `schema_version` **更低**时才写入本阶段版本，**绝不**下调更高版本（见 §10）。
 
 ### 4.6 目标结构示意（真实字段锚定）
 
-> ⚠️ 依据项目硬约束"示例须来自真实快照"：下例**既有字段取自真实快照** `mc_D_all_pairs_20261117_0000.json` 的 `EURUSD=X`；**新增字段为结构占位符**（`<...>`），其真实数值以首次生成产物为准，**此处不伪造**。
+> ⚠️ 依据项目硬约束"示例须来自真实快照"：下例**既有字段取自真实快照** `mc_D_all_pairs_20261117_0000.json` 的 `EURUSD=X`（生成产物快照；若该文件已随轮转移除，可改用任一 `schema_version=="1.1.0"` 产物核对同一形态）；**新增字段为结构占位符**（`<...>`），其真实数值以首次生成产物为准，**此处不伪造**。
 
 ```json
 {
@@ -366,6 +366,7 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 | `decay_half_life_h` | 后验随时间回落的半衰期 | 见 §9.3 |
 
 - 静态块与动态块各自携带时间戳，**不得混用**。
+- **时间戳校验（fail-closed）**：`generated_utc` 必须是带**显式偏移量**的 ISO-8601；缺失 / 非法 / 裸（naive）时间戳一律**报错**，不得静默替换为当前时间或臆断时区（r3 已实施，见 §13.4）。
 
 ---
 
@@ -419,7 +420,8 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 ## 10. 向后兼容与边界
 
 - **Additive only**：`schema_version` 升 `1.2.0`；既有字段与 `fib` 保留，`range_90` 语义不变。
-- **打标顺序与版本单调性**：Producer 内 `fib`（1.1.0）在前、概率（1.2.0）在后；`fib_mc_segment.py` 单独运行（`process()`）时**不得下调**已存在的更高 `schema_version`（r2 已修，见 §13）。
+- **打标顺序与版本单调性**：Producer 内 `fib`（1.1.0）在前、概率（1.2.0）在后；两模块单独运行（`process()` / `segment_prob_data()`）时**均不得下调**已存在的更高 `schema_version`（[fib_mc_segment.py](../fib_mc_segment.py) r2 已修；[prob_mc_segment.py](../prob_mc_segment.py) r3 已修，见 §13）。
+- **缺原料 fail-closed 拒绝**：概率打标要求每个 pair 均带 `distribution` 原料；任一 pair 缺料即**整体拒绝**（抛错），**绝不**产出「被误标为 1.2.0、但结构不全」的 payload（r3 已实施，见 §13.4）。
 - **向前生效**：仅新产物带新增块；历史产物不改写（P-5）。
 - **消费兼容**：消费者必须容忍 `distribution` / `prob_bands` / `belief` 缺失（早期产物）——按 §7 降级，不报错。
 - **不依赖 Phase 1 冻结**：本规格独立于 [PHASE_1_DATA_CONTRACT_v1.0.md](PHASE_1_DATA_CONTRACT_v1.0.md)，但遵循其 additive / no-rewrite / UTC / fail-closed 纪律。
@@ -471,6 +473,7 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 |------|------|------|
 | r1 | 2026-11-17 | 初版冻结（§9 参数固化、§12 勾选、Owner 签署）。 |
 | r2 | 2026-11-17 | 并入外部评审（Codex `v1.0.1`）有效意见；修正 §9.3 衰减公式；补 §4.3.1-9/10/11、§7 判定优先级、§9.1 匹配规则、§10 版本单调性；修 §2/V-4 表格转义。**正文以本文件为唯一真理源。** |
+| r3 | 2026-11-17 | 并入第二轮外部评审（Codex P1–P3，见 §13.4）：§0.1 基准产物改由**形态**定义；§4.4/§2 `likelihood` 措辞统一；§4.5 `regime` 表述澄清；§10 版本单调性与缺料 fail-closed。代码侧 [prob_mc_segment.py](../prob_mc_segment.py) 修版本单调性 / 缺料拒绝 / 时间戳严格校验。 |
 
 ### 13.2 外部评审处置
 
@@ -493,3 +496,17 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 
 - §2 `spread` 行与 §6 V-4 行的裸 `|` 破坏表格渲染（V-4 后半句曾被截断）→ 已转义为 `\lvert … \rvert`。
 - 删除平行文件 `docs/MC_PROB_ANNOTATION_SPEC_v1.0.1.md`，消除双真理源。
+
+### 13.4 第二轮外部评审处置（r3 · 2026-11-17）
+
+来源：Codex 第二轮评审（P1–P3，经对话转发，非文件）。逐条处置：
+
+| # | 级别 | 评审意见 | 处置 |
+|---|------|----------|------|
+| 1 | P1 | `segment_prob_data()` 无条件写 `"1.2.0"`，可降级更新的更高版本 | **采纳（含代码修复）** → [prob_mc_segment.py](../prob_mc_segment.py) 增 `_version_tuple`，仅当既有版本**更低**时才写 `1.2.0`；单测 `test_segment_prob_data_does_not_downgrade_schema` |
+| 2 | P1 | 缺 `distribution` 时 `annotate_pair()` 静默 no-op，整包仍标 1.2.0（假标） | **采纳（fail-closed 拒绝）** → `annotate_pair()` 缺料即抛 `ValueError`，`segment_prob_data()` 随之**整体拒绝**，绝不产出假标 payload；单测 `test_annotate_pair_without_distribution_is_rejected` / `test_segment_prob_data_rejects_payload_without_distribution` |
+| 3 | P1 | 规格 §0.1 引用的基准文件「不存在」，契约测试因此 skip | **部分采纳** → 评审基于**异机检出**（`/Users/liqin/...`）给出；本机该文件**存在**，且 v1.1 / contract 套件**未** skip（仅 1 例 1.2 集成 skip）。已把 §0.1 基准改为**由形态定义**，不再依赖具体文件留存 |
+| 4 | P2 | `MC_PROB_DOLA_DISCUSSION.md` 公式截断、模板缺后验、未指向冻结规格 | **采纳** → 补全 `P(E)` 公式、修正 `P(S₃\|E)` 模板、转义坏表格行、加指向冻结规格与阈值差异的说明 |
+| 5 | P2 | §4.4.1 与 §4.5 对 `regime` 自相矛盾 | **采纳** → §4.5 改为「上下文记录；仅影响先验 `w_range`，不作方向证据」 |
+| 6 | P2 | `_expires_utc()` 静默接受无效 / 裸时间戳 | **采纳** → 改为 `_utc_datetime()` 严格校验（缺失 / 非法 / naive 一律报错，不造时间、不臆断时区），并归一化到 UTC；单测 `test_belief_rejects_naive_and_invalid_timestamps` / `test_belief_normalizes_offset_to_utc` |
+| 7 | P3 | `likelihood` 字段「非线性意义上」措辞易混 / 疑似笔误 | **采纳** → §4.4 / §2 统一为「归一化权重（Producer 侧恒等退化为均匀，不作方向证据）」 |
