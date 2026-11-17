@@ -55,11 +55,51 @@ SHAPE_QUANTILE_KEYS = ["0.05", "0.25", "0.50", "0.75", "0.95"]
 
 
 def _version_tuple(version: Any) -> tuple:
-    """'1.2.0' -> (1, 2, 0); non-numeric / missing -> () (treated as lowest)."""
+    """严格解析 ``"1.2.0"`` → ``(1, 2, 0)``。
+
+    Fail-closed（§10 版本单调性）：**不可解析**的版本一律报错，绝不当作最低版本 ——
+    否则会把更高版本静默降级。缺失（``None``）由调用方按"无版本"处理，不在此吞掉。
+    """
+    if not isinstance(version, str) or not version.strip():
+        raise ValueError(f"schema_version must be a non-empty string, got {version!r}")
     try:
-        return tuple(int(part) for part in str(version).split("."))
-    except (TypeError, ValueError):
-        return ()
+        return tuple(int(part) for part in version.strip().split("."))
+    except ValueError as exc:
+        raise ValueError(f"unparseable schema_version: {version!r}") from exc
+
+
+def _finite_float(value: Any, field: str) -> float:
+    """转 float 并校验有限性（拒绝 NaN / Infinity）。"""
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field} must be numeric, got {value!r}") from exc
+    if not np.isfinite(number):
+        raise ValueError(f"{field} must be finite, got {value!r}")
+    return number
+
+
+def _finite_percent(value: Any, field: str) -> float:
+    """校验一个落在 [0,100] 的有限百分比数值。"""
+    number = _finite_float(value, field)
+    if not (0.0 <= number <= 100.0):
+        raise ValueError(f"{field} must be within [0,100], got {number}")
+    return number
+
+
+def _require_positive_int(value: Any, field: str) -> int:
+    """校验正整数（拒绝 bool，拒绝 ``2.5 → 2`` 这类静默截断）。"""
+    if isinstance(value, bool):
+        raise ValueError(f"{field} must be a positive integer, got {value!r}")
+    if isinstance(value, float) and not value.is_integer():
+        raise ValueError(f"{field} must be an integer, got {value!r}")
+    try:
+        number = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field} must be a positive integer, got {value!r}") from exc
+    if number <= 0:
+        raise ValueError(f"{field} must be a positive integer, got {value!r}")
+    return number
 
 
 def w_range_for(regime: Any) -> float:
@@ -88,20 +128,25 @@ def build_distribution(
 
     仅做确定性汇总（分位 + 矩），不重跑模拟、不引入任何外部输入。
     """
-    arr = np.asarray(final, dtype=float)
+    simulations = _require_positive_int(simulations, "simulations")
+    forecast = _require_positive_int(forecast, "forecast")
+    student_t_df = _require_positive_int(student_t_df, "student_t_df")
+    if student_t_df <= 2:
+        raise ValueError(f"student_t_df must be > 2 (finite variance), got {student_t_df}")
 
+    arr = np.asarray(final, dtype=float)
+    if arr.ndim != 1:
+        raise ValueError(f"final must be a 1-D terminal-price sample, got ndim={arr.ndim}")
     if arr.size == 0:
-        quantiles = {k: 0.0 for k in DIST_QUANTILE_KEYS}
-        return {
-            "source": "mc_terminal_paths",
-            "simulations": int(simulations),
-            "forecast": int(forecast),
-            "student_t_df": int(student_t_df),
-            "quantiles": quantiles,
-            "mean": 0.0, "std": 0.0, "min": 0.0, "max": 0.0,
-            "skew": 0.0, "kurtosis": 0.0,
-            "degenerate": True,
-        }
+        raise ValueError("final is empty; refusing to fabricate an all-zero distribution")
+    if not np.all(np.isfinite(arr)):
+        raise ValueError("final contains non-finite values (NaN/Inf); refusing to build distribution")
+    if np.any(arr <= 0.0):
+        raise ValueError("final contains non-positive prices; refusing to build distribution")
+    if arr.size != simulations:
+        raise ValueError(
+            f"sample count {arr.size} != simulations {simulations}; refusing to build distribution"
+        )
 
     mean = float(np.mean(arr))
     std = float(np.std(arr))
@@ -143,14 +188,40 @@ def build_distribution(
 # L1：prob_bands（等概率带，由 distribution 确定性派生）
 # ==============================================================================
 def _sorted_quantile_points(distribution: Dict[str, Any]) -> List[Tuple[float, float]]:
-    quantiles = distribution.get("quantiles") or {}
+    """严格解析 ``distribution.quantiles``（§4.2 / V-1）。
+
+    要求：键集**完整且恰为** ``DIST_QUANTILE_KEYS``；值有限、为正；随概率**非递减**。
+    任一不满足即拒绝 —— 而不是静默跳过坏点，再用残缺分位插值出错误的带边界。
+    """
+    quantiles = distribution.get("quantiles")
+    if not isinstance(quantiles, dict):
+        raise ValueError("distribution.quantiles must be an object")
+
+    missing = [k for k in DIST_QUANTILE_KEYS if k not in quantiles]
+    if missing:
+        raise ValueError(f"distribution.quantiles missing required keys: {missing}")
+    extra = [k for k in quantiles if k not in DIST_QUANTILE_KEYS]
+    if extra:
+        raise ValueError(f"distribution.quantiles has unexpected keys: {extra}")
+
     points: List[Tuple[float, float]] = []
-    for key, value in quantiles.items():
+    for key in DIST_QUANTILE_KEYS:
+        value = quantiles[key]
         try:
-            points.append((float(key), float(value)))
-        except (TypeError, ValueError):
-            continue
-    points.sort(key=lambda kv: kv[0])
+            probability = float(key)
+            price = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"quantile {key!r} has non-numeric value {value!r}") from exc
+        if not np.isfinite(probability) or not (0.0 <= probability <= 1.0):
+            raise ValueError(f"quantile probability out of range: {key!r}")
+        if not np.isfinite(price) or price <= 0.0:
+            raise ValueError(f"quantile {key!r} must be a finite positive price, got {value!r}")
+        if points and price < points[-1][1]:
+            raise ValueError(
+                f"quantiles must be non-decreasing with probability: "
+                f"{key!r}={price} < {points[-1][1]}"
+            )
+        points.append((probability, price))
     return points
 
 
@@ -164,8 +235,20 @@ def derive_prob_bands(
 ) -> Dict[str, Any]:
     """由 distribution 派生等概率带（§4.3.1 派生规则）。"""
     points = _sorted_quantile_points(distribution)
-    vmin = float(distribution.get("min", points[0][1] if points else 0.0))
-    vmax = float(distribution.get("max", points[-1][1] if points else 0.0))
+    try:
+        vmin = _finite_float(distribution["min"], "distribution.min")
+        vmax = _finite_float(distribution["max"], "distribution.max")
+    except KeyError:
+        vmin, vmax = points[0][1], points[-1][1]
+    if vmin <= 0.0 or vmax <= 0.0:
+        raise ValueError("distribution.min/max must be positive prices")
+    if vmin > vmax:
+        raise ValueError(f"distribution.min ({vmin}) must be <= distribution.max ({vmax})")
+    if not (vmin <= points[0][1] and points[-1][1] <= vmax):
+        raise ValueError(
+            f"distribution.min/max [{vmin}, {vmax}] must bracket the stored quantiles "
+            f"[{points[0][1]}, {points[-1][1]}]"
+        )
     degenerate = bool(distribution.get("degenerate", False))
 
     # 单调分位函数：两端锚定 min / max，中间对已存分位线性插值
@@ -193,12 +276,32 @@ def derive_prob_bands(
         })
 
     # 位置：唯一真理源是 percentile_rank（P(终值 <= 当前价)）
-    rank = float(percentile_rank)
-    band_index = int(min(max(rank, 0.0) // (100.0 / band_count), band_count - 1))
+    rank = _finite_percent(percentile_rank, "percentile_rank")
+    price = _finite_float(current_price, "current_price")
+    if price <= 0.0:
+        raise ValueError(f"current_price must be positive, got {current_price!r}")
+
+    band_index = int(min(rank // (100.0 / band_count), band_count - 1))
     band = bands[band_index]
     lo, hi = band["price_lo"], band["price_hi"]
+
+    # 一致性（fail-closed）：rank 定带与 current_price 的几何落点必须相容。
+    # 容许 ±1 带，以吸收分位线性插值 + 取整的边界误差；超出即视为输入自相矛盾并**拒绝**，
+    # 而不是靠 clamp 把矛盾隐藏成 "position_in_band_pct = 0/100"（§4.3.1-10）。
+    if not degenerate:
+        geo_index = None
+        for i, candidate in enumerate(bands):
+            if candidate["price_lo"] <= price <= candidate["price_hi"]:
+                geo_index = i
+                break
+        if geo_index is None or abs(geo_index - band_index) > 1:
+            raise ValueError(
+                "percentile_rank and current_price are inconsistent: "
+                f"rank={rank} -> band {band_index}, price {price} -> geometric band {geo_index}"
+            )
+
     if hi > lo:
-        position = (float(current_price) - lo) / (hi - lo) * 100.0
+        position = (price - lo) / (hi - lo) * 100.0
     else:
         position = 50.0
     position = round(max(0.0, min(100.0, position)), 1)
@@ -287,8 +390,30 @@ def derive_belief(
     degenerate: bool = False,
 ) -> Dict[str, Any]:
     """以 p_up / p_down 锚定先验；Producer 侧似然均匀 → posterior == prior。"""
-    p_up = float(p_up)
-    p_down = float(p_down)
+    # 方向概率是唯一真理源：必须有限、落在 [0,100]，且两者构成完整概率（和 = 100）。
+    # 非法输入一律拒绝，绝不带着 NaN / 越界概率进入贝叶斯计算（评审 P0-3）。
+    p_up = _finite_percent(p_up, "p_up")
+    p_down = _finite_percent(p_down, "p_down")
+    if abs((p_up + p_down) - 100.0) > 1e-6:
+        raise ValueError(
+            f"p_up + p_down must equal 100, got {p_up} + {p_down} = {p_up + p_down}"
+        )
+
+    # 先验调制参数边界：防止无效 tau / gamma / half_life 产生非法先验或失效时间（评审 P1-belief）。
+    tau = _finite_float(tau, "tau")
+    if not (0.0 <= tau <= 1.0):
+        raise ValueError(f"tau must be within [0,1], got {tau}")
+    gamma = _finite_float(gamma, "gamma")
+    if gamma <= 0.0:
+        raise ValueError(f"gamma must be > 0, got {gamma}")
+    half_life_h = _finite_float(half_life_h, "half_life_h")
+    if half_life_h <= 0.0:
+        raise ValueError(f"half_life_h must be > 0, got {half_life_h}")
+    if range_90_pct is not None:
+        range_90_pct = _finite_float(range_90_pct, "range_90_pct")
+        if range_90_pct < 0.0:
+            raise ValueError(f"range_90_pct must be >= 0, got {range_90_pct}")
+
     spread = abs(p_up - p_down) / 100.0
 
     w_range = w_range_for(regime)
@@ -317,19 +442,23 @@ def derive_belief(
         "spread": round(posterior[order[0]] - posterior[order[1]], 4),
     }
 
-    narrow = range_90_pct is not None and float(range_90_pct) < MIN_WIDTH_PCT_GATE
+    # 窄区间保护（fail-closed）：宽度缺失 / 无法计算同样判为不可判定 → NO_EDGE。
+    # "不知道区间宽度" ≠ "区间不窄"，因此 None 绝不 fail-open（评审 P1-range_90_pct）。
+    narrow = range_90_pct is None or range_90_pct < MIN_WIDTH_PCT_GATE
     if degenerate or narrow or posterior[order[0]] < tau:
         verdict = "NO_EDGE"
     else:
         verdict = order[0]
 
-    generated = (
-        generated_utc if generated_utc is not None
-        else datetime.now(timezone.utc).isoformat()
-    )
-    generated_dt = _utc_datetime(generated, field="generated_utc")
+    # 时间戳契约（§8 / 评审 P0-1）：缺失即拒绝，绝不静默补当前时间 ——
+    # 否则无 generated_utc 的历史数据会被伪装成"刚生成"，获得虚假新鲜度。
+    if generated_utc is None:
+        raise ValueError(
+            "generated_utc is required; refusing to silently stamp the current time"
+        )
+    generated_dt = _utc_datetime(generated_utc, field="generated_utc")
     generated = generated_dt.isoformat()
-    expires = (generated_dt + timedelta(hours=float(half_life_h))).isoformat()
+    expires = (generated_dt + timedelta(hours=half_life_h)).isoformat()
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -367,6 +496,13 @@ def annotate_pair(rec: Dict[str, Any], *, band_count: int = BAND_COUNT) -> Dict[
     decimals = 3 if "JPY" in str(rec.get("pair", "")) else 5
     current_price = float(rec["current_price"])
 
+    # 方向概率唯一真理源：必须显式存在；缺失不得静默填 50/50 造出一个假先验（评审 P0-3）。
+    if "p_up" not in rec or "p_down" not in rec:
+        raise ValueError(
+            f"pair {rec.get('pair')!r} is missing p_up/p_down; "
+            "refusing to default to a 50/50 prior (fail-closed)"
+        )
+
     rec["prob_bands"] = derive_prob_bands(
         distribution,
         current_price,
@@ -382,13 +518,20 @@ def annotate_pair(rec: Dict[str, Any], *, band_count: int = BAND_COUNT) -> Dict[
             float(quantiles["0.95"]) - float(quantiles["0.05"])
         ) / current_price * 100.0
 
+    # 退化状态必须合并 L1 的退化（prob_bands.degenerate）：分位带因取整退化为零宽时，
+    # belief 不得仍凭 distribution.degenerate=False 给出方向 verdict（评审 P0-2）。
+    effective_degenerate = (
+        bool(distribution.get("degenerate", False))
+        or bool(rec["prob_bands"].get("degenerate", False))
+    )
+
     rec["belief"] = derive_belief(
-        rec.get("p_up", 50.0),
-        rec.get("p_down", 50.0),
+        rec["p_up"],
+        rec["p_down"],
         rec.get("regime", ""),
         generated_utc=rec.get("generated_utc"),
         range_90_pct=range_90_pct,
-        degenerate=bool(distribution.get("degenerate", False)),
+        degenerate=effective_degenerate,
     )
     return rec
 
@@ -412,9 +555,22 @@ def segment_prob_data(mc_data: Dict[str, Any], *, band_count: int = BAND_COUNT) 
     metadata = segmented.setdefault("metadata", {})
     if not isinstance(metadata, dict):
         raise ValueError("MC data 'metadata' must be a dictionary")
-    # 版本单调：只补不降。不得把已存在的更高 schema_version 写回 1.2.0（评审 #1）。
-    if _version_tuple(metadata.get("schema_version")) < _version_tuple(SCHEMA_VERSION):
+    # 版本单调（§10 / 评审 #4）：缺失 → 视为最低版本并补写；低于 → 升级；
+    # 高于当前版本 → 结构未知，整体拒绝（fail-closed），绝不静默降级或改写未知结构；
+    # 不可解析 → _version_tuple 抛错，同样拒绝。
+    existing_version = metadata.get("schema_version")
+    if existing_version is None:
         metadata["schema_version"] = SCHEMA_VERSION
+    else:
+        current = _version_tuple(existing_version)
+        target = _version_tuple(SCHEMA_VERSION)
+        if current > target:
+            raise ValueError(
+                f"refusing to annotate higher schema_version {existing_version!r} "
+                f"(current {SCHEMA_VERSION}): unknown structure, fail-closed"
+            )
+        if current < target:
+            metadata["schema_version"] = SCHEMA_VERSION
     metadata["annotation"] = {
         "method": "prob_bands+belief",
         "band_count": band_count,
@@ -436,6 +592,12 @@ if __name__ == "__main__":
     final = 1.10 * np.exp(rng.standard_t(5, 5000) * 0.006 * np.sqrt(5))
     dist = build_distribution(final, simulations=5000, forecast=5, student_t_df=5, decimals=5)
     bands = derive_prob_bands(dist, 1.10249, 61.4, decimals=5)
-    belief = derive_belief(38.6, 61.4, "⚡ D STRONG MOMENTUM")
+    belief = derive_belief(
+        38.6,
+        61.4,
+        "⚡ D STRONG MOMENTUM",
+        generated_utc="2026-11-17T00:00:00+00:00",
+        range_90_pct=bands["bands"][-1]["price_hi"] / 1.10 * 100.0 - 100.0,
+    )
     print(json.dumps({"distribution": dist, "prob_bands": bands, "belief": belief},
                      indent=2, ensure_ascii=False))

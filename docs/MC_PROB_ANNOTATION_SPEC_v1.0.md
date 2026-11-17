@@ -2,7 +2,7 @@
 
 **Status:** FROZEN v1.0 — 已由 Owner 批准冻结（§12 冻结清单全部勾选）；Producer 侧实现已获授权
 **Version:** 1.0（对应 payload `schema_version = "1.2.0"`）
-**Revision:** r3 · 2026-11-17 —— 并入第二轮外部评审（Codex，P1–P3）有效意见，见 §13.4；此前 r2 见 §13.1。正文仍以本文件为唯一真理源。
+**Revision:** r4 · 2026-11-17 —— 并入第三轮外部评审（ChatGPT，P0/P1/P2）有效意见，见 §13.5；此前 r3 见 §13.4，r2 见 §13.1。**本轮仅补全契约文本（公式 / 语义 / 不变量 / 边界 / 命名保留说明），不改冻结参数（§9）、不改任何字段名、不改算法、不改 `fib`。** 正文仍以本文件为唯一真理源。
 **Project:** `fx_monte_carlo`
 **Created:** 2026-11-17
 **Scope:** 只定义标注体系（`distribution` / `prob_bands` / `belief`）的字段语义与契约。**不修改**任何现有字段、`fib` 块、算法与数据。实现授权与本文档审批分离。
@@ -60,6 +60,7 @@
 | 概率质量 | `prob_mass` | 某带内的概率占比，$\sum = 1$ |
 | 方向概率 | `p_up` / `p_down` | 终点高于/低于当前价的模拟比例（既有真理源） |
 | 概率差 | `spread` | $\lvert p\_up - p\_down \rvert / 100 \in [0,1]$，量化"方向强弱" |
+| 窄区间门限口径 | `range_90_pct` | $(q95 - q05) / current\_price \times 100$，单位**百分比（%）**（非比例）；见 §4.3.2 |
 | 先验 | `prior` | L2 初始状态分布，由 `p_up` 锚定 |
 | 似然 | `likelihood` | $P(E \mid S_i)$；**存储为归一化权重**（§4.4）。 |
 | 后验 | `posterior` | $P(S_i \mid E)$，归一化 |
@@ -70,6 +71,17 @@
 
 > **`p_up` 平价归属（语义告诫）**：既有引擎 `p_up = count(final > current) / N`，`p_down = 100 − p_up`，故 `final == current` 的路径**计入 DOWN**。这是引擎既有事实，本规格**不改动**（P-1）。
 > **"锚定"定义**：归一化后的方向先验与 `p_up` / `p_down` **成正比**（非相等），比例由 RANGE 项与 `w_range` 调制；`p_up` 仍是方向概率的唯一真理源（P-2）。
+
+### 2.1 数据分层与压缩程度（防误读）
+
+| 名称 | 实际含义 | 压缩程度 |
+|------|----------|----------|
+| MC terminal paths | `run_mc()` 的原始模拟终值路径（`simulations` 条） | **原始样本，不落盘** |
+| `distribution` | 由原始路径汇总的**压缩摘要**（9 分位 + 4 矩 + 2 形状量 + 生成参数 + `min`/`max`） | **有损**，**无法**精确恢复经验分布或样本计数 |
+| `prob_bands` | 由 `distribution` 摘要**插值构造**的**近似**等概率带 | 近似；`prob_mass` 为**构造值**（§4.3.1-3） |
+| `belief` | 基于先验与证据的信念状态（advisory，P-2） | 参考快照 |
+
+> **术语纪律**：`distribution` **不是**完整的终值样本，只是**压缩摘要**；下游**不得**假定可从中恢复原始分布、直方图或样本频数。`prob_bands` 是摘要的**近似**派生，**不是**实测样本分位。`belief` 的 `posterior` 是 advisory 信念分布，**不是**方向概率。
 
 ---
 
@@ -145,15 +157,32 @@ Consumer (interface.py, Phase 2)
 | 字段 | 类型 | 必填 | 语义 |
 |------|------|------|------|
 | `source` | string | 是 | 分布来源标识。 |
-| `simulations` / `forecast` / `student_t_df` | int | 是 | 回显生成参数，便于复算与审计。 |
-| `quantiles` | object | 是 | 键为小数概率字符串（`"0.05"`），值为对应价格。键**严格递增**。 |
-| `mean` / `std` / `min` / `max` | number | 是 | 终值分布矩。 |
-| `skew` / `kurtosis` | number | 是 | 形状描述子（用于"弯曲"刻画）。 |
-| `degenerate` | bool | 是 | 分布退化（如 `std==0` 或全同值）标志。 |
+| `simulations` / `forecast` / `student_t_df` | int | 是 | 回显生成参数，便于复算与审计。约束：`simulations > 0`（且与样本数一致）、`forecast > 0`、`student_t_df > 2`（否则无有限方差，见 §4.2.1）。 |
+| `quantiles` | object | 是 | 键为小数概率字符串（`"0.05"`）；键**恰为固定键集**且数值**随概率非递减**，值均为**有限正数**（"键顺序正确" ≠ "值顺序正确"，详见 §6 V-1）。 |
+| `mean` / `std` / `min` / `max` | number | 是 | 终值分布统计量；定义见 §4.2.1。`min`/`max` 为有限正数且 `min ≤ max`、`std ≥ 0`。 |
+| `skew` / `kurtosis` | number | 是 | 形状描述子；定义见 §4.2.1。 |
+| `degenerate` | bool | 是 | 分布退化（如 `std == 0` 或全同值）标志。 |
+
+#### 4.2.1 统计量计算定义（固定口径，防"同 Schema 异数值"）
+
+各实现必须采用**同一口径**，否则会出现同样的 Schema、不同的数值：
+
+| 字段 | 定义 |
+|------|------|
+| `std` | **总体**标准差（`ddof = 0`，即 $\sqrt{\frac{1}{n}\sum (x_i-\bar{x})^2}$），**非**样本标准差。 |
+| `skew` | **总体标准化三阶矩**（Fisher–Pearson，无偏性修正**不做**）：$\frac{1}{n}\sum \left(\frac{x_i-\bar{x}}{\sigma}\right)^3$。 |
+| `kurtosis` | **超额（Fisher）峰度**：$\frac{1}{n}\sum \left(\frac{x_i-\bar{x}}{\sigma}\right)^4 - 3$。**正态分布 = 0**（**非** Pearson 定义的 3）。 |
+| `quantiles` | 采用 **numpy 默认 `linear`** 插值分位数（`np.percentile(..., method="linear")`）于小数概率 $\times 100$ 处。 |
+| `mean` / `min` / `max` | 样本算术均值 / 最小值 / 最大值。 |
+
+> 上表为**已实现口径的事实固定**（P-1：不改算法），目的仅是消除歧义、供 Consumer 复算对齐。`student_t_df ≤ 2` 时拒绝产出（无有限方差，继续运行会静默产生无意义扰动）。
 
 ### 4.3 `prob_bands`（L1 · 等概率带）
 
 由 `distribution` **确定性近似**派生（分位线性插值 + 经验众数；规则见 §4.3.1）。
+
+> **近似语义（必读）**：本方法产出的是**近似等概率分位带**——边界由已存 9 个分位点**线性插值**得到，**不是**对原始模拟样本重新计数得到的精确等概率带。因此 `prob_mass` 是**构造值**，**不代表**实际样本命中比例恰为 `1/N`（§4.3.1-3）。
+> **命名保留**：字段 `method` 的值**保留** `"equal_probability_mass"`（P-1：改名即破坏已冻结契约）；其"近似"性质由本段与 §2.1 明确，**不通过改名表达**。
 
 ```json
 "prob_bands": {
@@ -201,15 +230,35 @@ Consumer (interface.py, Phase 2)
 
 1. **分位函数** $Q(p)$：以已存分位点为锚，两端锚定 `distribution.min`（$p{=}0$）与 `distribution.max`（$p{=}1$），中间对相邻已存分位做**线性插值**。
 2. **带边界**：$b_k = Q(k/N)$，$k = 0 \dots N$（$N$ = `band_count`）。相邻带**共享端点**，故 `bands[i].price_hi == bands[i+1].price_lo`；首带下界 = `min`，末带上界 = `max`。
-3. **`prob_mass`**：按构造恒为 `target_mass = 1/N`（**构造值，非实测**），故 $\sum = 1$，**不受分位四舍五入影响**。
-4. **`band_index`**：唯一真理源是 `percentile_rank`（$P(\text{final} \le \text{current})$）。`band_index = clamp(⌊percentile_rank / (100/N)⌋, 0, N−1)`。
-5. **`current.position_in_band_pct`**：$(\text{current} - lo)/(hi - lo) \times 100$，clamp 到 `[0,100]`。
-6. **`shape.mode`**：由分位点无原始样本可算真众数，采用 **Pearson 经验式** $\text{mode} \approx 3 \cdot \text{median} - 2 \cdot \text{mean}$。
+3. **`prob_mass`**：按构造恒为 `target_mass = 1/N`（**构造值，非实测**），故 $\sum = 1$，**不受分位四舍五入影响**。Consumer **不得**将其当作实际命中概率。
+4. **`band_index`**：唯一真理源是 `percentile_rank`（$P(\text{final} \le \text{current})$）。`band_index = clamp(⌊percentile_rank / (100/N)⌋, 0, N−1)`；`percentile_rank` 须 ∈ `[0,100]`。
+5. **`current.position_in_band_pct`**：$(\text{current} - lo)/(hi - lo) \times 100$，clamp 到 `[0,100]`；零宽带取 `50.0`（§4.3.1-11）。
+6. **`shape.mode`**：由分位点无原始样本可算真众数，采用 **Pearson 经验式** $\text{mode} \approx 3 \cdot \text{median} - 2 \cdot \text{mean}$。**字段名 `mode` 保留**（P-1：不改名），但其语义为**经验估计值**，**不是**真实样本众数，**不得**用于直接推断"最高概率价格"。
 7. **`shape.prob_below` / `prob_above`**：分别取 `percentile_rank` 与 $100 - \text{percentile_rank}$。
-8. **`degenerate`**：继承 `distribution.degenerate`；若派生边界不可分辨（非严格递增）则亦置 `true`。
+8. **`degenerate`**：继承 `distribution.degenerate`；若派生边界不可分辨（非严格递增）则亦置 `true`（退化输出结构见 §4.3.1-11）。
 9. **端点归属**：各带定义为半开区间 $[price\_lo,\ price\_hi)$，仅**末带**取闭区间 $[price\_lo,\ price\_hi]$。
-10. **`current` 定带**：一律由 `percentile_rank` clamp 定带（**不依赖几何查找**）；若几何位置与 `percentile_rank` 冲突，**以 `percentile_rank` 为准**。`position_in_band_pct` clamp 到 `[0,100]`，故**不存在**"无带可映射"的情形。
-11. **退化豁免**：当 `degenerate == true` 时，band 几何不可分辨（`price_lo == price_hi`），此时 **V-3 的 `price_lo < price_hi` 豁免**，且 `belief.verdict` 必为 `NO_EDGE`（§7）。
+10. **`current` 定带与自洽**：一律由 `percentile_rank` clamp 定带（**不依赖几何查找**）；若几何位置与 `percentile_rank` 冲突，**以 `percentile_rank` 为准**。但 `current` 与所定带必须**结构自洽**：`current.index == band_index`、`current.price_lo == bands[band_index].price_lo`、`current.price_hi == bands[band_index].price_hi`。`position_in_band_pct` **仅**描述价格在带内的**几何位置**，**不具**重新确定概率带归属的权力。
+    - **一致性 fail-closed**：`percentile_rank` 与 `current_price` 的几何落点必须**相容**（允许 ±1 带容差，以吸收分位线性插值 + 取整误差）。超出容差即视为**输入自相矛盾**并**拒绝**，**不得**用 `clamp` 将矛盾隐藏成 `position_in_band_pct = 0/100`。
+11. **退化输出结构（完整定义）**：当 `degenerate == true` 时：
+    - `bands[]` **仍保持 N 个元素**（结构不变，仅几何不可分辨：`price_lo == price_hi`）；此时 **V-3 的 `price_lo < price_hi` 豁免**；
+    - `current.position_in_band_pct` 取 `50.0`；
+    - `belief.verdict` 必为 `NO_EDGE`（§7）；
+    - 该退化标志**必须**并入 `belief` 的退化判定输入：`effective_degenerate = distribution.degenerate OR prob_bands.degenerate`。**任一为真即 fail-closed**——不得因 `distribution.degenerate == false` 而漏判（例如仅因输出取整使相邻边界相等）。
+
+#### 4.3.2 窄区间门限口径 `range_90_pct`
+
+Fail-closed 的"窄区间"判据使用 `range_90_pct`，其定义**唯一**为：
+
+```
+range_90_pct = (q95 - q05) / current_price * 100     # 单位：百分比（%）
+```
+
+其中 `q05` / `q95` = `distribution.quantiles["0.05"]` / `["0.95"]`，`current_price` = 当前价。
+
+- **与既有 fib 口径一致**：既有 fib 的 `range_90_pct`（schema 1.1.0）为 `(range_90.upper − range_90.lower) / current_price × 100`；因 `range_90 = [q05, q95]`（`confidence = 0.90`），二者**数值相同**。本规格沿用同一口径，**不引入第二套宽度定义**。
+- **单位是百分比，不是比例**：门限 `1.2` 即 **`1.2%`**。
+- **分母是 `current_price`**（**非** `mean`、**非** 价差绝对值）。
+- **无效输入 fail-closed**：当 `current_price ≤ 0`、`q05`/`q95` 缺失或非有限、或无法计算（`None`）时，**不得**判为"不窄"——一律视为**不可判定** → `verdict = NO_EDGE`（§7）。**"不知道区间宽度" ≠ "区间不窄"。**
 
 ### 4.4 `belief`（L2 · 贝叶斯信念 · 参考快照）
 
@@ -246,11 +295,11 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 | `evidence[]` | array | 是 | 证据列表；每条含 `name` / `value` / `likelihood`。 |
 | `likelihood` | object | 是 | 合成似然，以**归一化权重**存储（用于贝叶斯相乘）；Producer 侧恒等退化为均匀 `1/3`（§4.4.1），**不作方向证据**。 |
 | `posterior` | object | 是 | 后验（归一化）。 |
-| `edge` | object | 是 | `argmax` 与置信度、`spread`。 |
-| `threshold_tau` | number | 是 | 判定阈值（§9.2，冻结值 `0.55`）。 |
-| `verdict` | enum | 是 | `UP` / `DOWN` / `RANGE` / `NO_EDGE`。 |
+| `edge` | object | 是 | `argmax` / `value` / `spread`。不变量：`argmax == argmax(posterior)`、`value == max(posterior)`、`spread == max(posterior) − 次大(posterior)`（见 §6 V-7）。 |
+| `threshold_tau` | number | 是 | 判定阈值（§9.2，冻结值 `0.55`）；须有限且 ∈ `[0,1]`。 |
+| `verdict` | enum | 是 | `UP` / `DOWN` / `RANGE` / `NO_EDGE`；**必须**与 §7 判定优先级规则一致（由 `degenerate` / 窄区间 / 后验平坦 / `argmax` 推出，不得残留旧结果）。 |
 | `advisory` | bool | 是 | 恒 `true`，标记非真理源。 |
-| `decay_half_life_h` | number | 是 | 时效衰减半衰期（§9.3，冻结值 `24`）。 |
+| `decay_half_life_h` | number | 是 | 时效衰减半衰期（§9.3，冻结值 `24`）；须有限且 `> 0`。 |
 | `generated_utc` / `expires_utc` | string | 是 | ISO-8601 UTC（`+00:00`）。 |
 | `mode` | string | 是 | `"static_reference"`（Producer）或 `"dynamic"`（Consumer）。 |
 
@@ -322,6 +371,17 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 - C-3：数据缺失 / 过期 / 退化时，按 §7 输出 `NO_EDGE`。
 - C-4：一次调用只加载一个文件并复用结果，避免 N 次 IO（与 [interface.md](../interface.md) §4.2 一致）。
 
+### 5.4 消费语义约束（L1 与 L2 不得混用）
+
+- **L1 是概率分布的解释层，L2 是证据融合层**，二者**不可互相替代**：
+  - L1（`prob_bands`）只说明当前价在终值分布中的**分位位置**；
+  - L0 的 `p_up` / `p_down` 才是方向概率的**唯一真理源**（P-2）；
+  - L2（`belief`）只说明**证据是否达到判定阈值**。
+- 三者**可以并存而不矛盾**：价格处于高分位 ≠ 方向信念达到阈值 ≠ 未来上涨概率。例如「L1 显示当前价位于 `Q80–100`、L0 显示 `p_up = 65%`、L2 显示 `verdict = NO_EDGE`」并不矛盾。
+- **禁止**把 `belief.verdict == "UP"` 解释为"未来上涨概率 = `posterior.UP`"；`posterior` 是 advisory 信念分布，**不是**方向概率。
+- **禁止**把 `prob_bands.bands[i].prob_mass` 当作实测命中概率（其为构造值，§4.3.1-3）。
+- **禁止**把 `shape.mode` 当作真实样本众数或"最高概率价格"（§4.3.1-6）。
+
 ---
 
 ## 6. 不变量与校验规则
@@ -330,16 +390,20 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 
 | ID | 不变量 |
 |----|--------|
-| V-1 | `distribution.quantiles` 键严格递增，值有限且 `> 0`。 |
-| V-2 | `distribution` 各矩有限（无 `NaN` / `Inf`）。 |
+| V-1 | `distribution.quantiles` 键**恰为固定键集**且数值**随概率非递减**；每题值均为**有限正数**。（**键顺序正确 ≠ 值顺序正确**：值逆序会使插值产生错误带边界，必须拒绝。） |
+| V-2 | `distribution` 各统计量有限（无 `NaN` / `Inf`）；`min` / `max` 为**有限正数**且 `min ≤ max`；`std ≥ 0`；且 **`min ≤ q01 ≤ q05 ≤ … ≤ q99 ≤ max`**（分位值须被 `min`/`max` 括住并自身非递减）。 |
 | V-3 | `prob_bands.bands` 按 `index` 升序；每条 `price_lo < price_hi`（`degenerate == true` 时**豁免**，见 §4.3.1-11）；相邻端点相接；首尾覆盖 `distribution` 支撑区间。 |
 | V-4 | `Σ bands[i].prob_mass ≈ 1`（容差 ≤ 0.01）；$\lvert prob\_mass - target\_mass \rvert \le$ 容差。 |
-| V-5 | `band_index ∈ [0, band_count-1]`；`current.position_in_band_pct ∈ [0,100]`；`band_index` 与 `percentile_rank` 自洽。 |
-| V-6 | `belief.prior` / `likelihood` / `posterior` 各自 `Σ ≈ 1`（容差 ≤ 0.01），各分量 `∈ [0,1]`。 |
-| V-7 | `edge.argmax == argmax(posterior)`。 |
+| V-5 | `band_index ∈ [0, band_count-1]`；`current.position_in_band_pct ∈ [0,100]`；`current.index == band_index`；`current.price_lo/hi` 与 `bands[band_index]` 一致；`percentile_rank ∈ [0,100]` 且与 `current_price` 的几何落点**相容**（超过 ±1 带容差即**拒绝**，不得用 `clamp` 掩盖矛盾）。 |
+| V-6 | `belief.prior` / `likelihood` / `posterior` 各自 `Σ ≈ 1`（容差 ≤ 0.01），各分量 `∈ [0,1]`，且**全部为有限数值**。 |
+| V-7 | `edge.argmax == argmax(posterior)`；`edge.value == max(posterior)`；`edge.spread == max(posterior) − 次大(posterior)`（非负）。 |
 | V-8 | `advisory == true`。 |
-| V-9 | `expires_utc > generated_utc`。 |
+| V-9 | `expires_utc > generated_utc`；硬 TTL 边界为**闭左**：`now_utc ≥ expires_utc` 即视为**过期**（§7 / §9.3）。 |
 | V-10 | 新增键集在所有 pair 间一致；既有字段与 `fib` 未被改动。 |
+| V-11 | `verdict` **必须**与 §7 判定优先级规则一致：`degenerate` → 窄区间 → 后验平坦 → 否则 `argmax`。不得出现"`posterior` 已更新但 `verdict` 仍是旧结果"的不一致。 |
+| V-12 | `threshold_tau` / `decay_half_life_h` / `edge.value` / `edge.spread` / `range_90_pct` 均为有限数值；参数边界 `0 ≤ tau ≤ 1`、`gamma > 0`、`half_life_h > 0`、`range_90_pct ≥ 0`、`range_90_pct` 为 `None` 时按**不可判定**处理（§4.3.2）。 |
+| V-13 | `distribution` 参数有效：`simulations` 为正整数且与样本数一致；`forecast` 为正整数；`student_t_df > 2`。 |
+| V-14 | 退化输出结构：`degenerate == true` 时 `bands[]` **仍为 N 个元素**、`current.position_in_band_pct == 50.0`、`verdict == NO_EDGE`；且 `belief` 的退化输入为 `distribution.degenerate OR prob_bands.degenerate`（任一为真即 fail-closed）。 |
 
 ---
 
@@ -349,11 +413,22 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 |----------|-----------|------|
 | `distribution.degenerate == true` 或 `prob_bands.degenerate == true` | `NO_EDGE` | 不得产生方向信念；不得默认满仓。 |
 | `max(posterior) < threshold_tau`（后验平坦） | `NO_EDGE` | 保持中性。 |
-| 窄区间 / `range_90` 退化 | `NO_EDGE` | 与既有 fib 的 fail-open 教训一致（见 [interface.md](../interface.md) §4.1）。 |
-| `now_utc > expires_utc`（过期） | 消费端拒绝 | 标记过期，**不得**当作当前判断。 |
+| 窄区间（`range_90_pct < 1.2`）**或宽度不可用**（`None` / 非有限） | `NO_EDGE` | 与既有 fib 的 fail-open 教训一致（见 [interface.md](../interface.md) §4.1）。**"不知道宽度" ≠ "不窄"**。 |
+| `now_utc ≥ expires_utc`（过期） | 消费端拒绝 | 标记过期，**不得**当作当前判断。 |
 | 原料缺失 / 校验失败 | `NO_EDGE` | 保守降级。 |
 
-> **判定优先级（自上而下，任一命中即 `NO_EDGE`）**：`degenerate` → 窄区间（`range_90_pct < 1.2`）→ 后验平坦（`max(posterior) < threshold_tau`）→ 否则取 `argmax`。
+> **判定优先级（自上而下，任一命中即 `NO_EDGE`）**：`effective_degenerate` → 窄区间（`range_90_pct < 1.2`，含宽度不可用）→ 后验平坦（`max(posterior) < threshold_tau`）→ 否则取 `argmax`。
+
+#### 7.1 `verdict` 推导（与 §6 V-11 一致）
+
+| 条件（自上而下，任一命中即 `NO_EDGE`） | `verdict` |
+|----------------------------------------|-----------|
+| `effective_degenerate == true`（`distribution` 或 `prob_bands` 任一退化） | `NO_EDGE` |
+| 窄区间：`range_90_pct < 1.2`，或 `range_90_pct` 不可用（`None` / 非有限） | `NO_EDGE` |
+| 后验平坦：`max(posterior) < threshold_tau` | `NO_EDGE` |
+| 以上均不成立 | `argmax(posterior)` |
+
+> `verdict` 必须由**当前** `posterior` 与上述输入即时推出，**不得**残留旧结果（§6 V-11）。
 
 ---
 
@@ -361,12 +436,14 @@ Producer 侧写入的是**参考快照**；Consumer 侧重算为 `mode:"dynamic"
 
 | 字段 | 语义 | 约束 |
 |------|------|------|
-| `generated_utc` | 该块生成时刻 | ISO-8601 UTC，`+00:00`；沿用既有 UTC 纪律 |
-| `expires_utc` | 该块失效时刻 | `> generated_utc`；Consumer 超时即弃用 |
+| `generated_utc` | 该块生成时刻 | ISO-8601 UTC，`+00:00`；**必须显式存在**，缺失即拒绝（见下）。 |
+| `expires_utc` | 该块失效时刻 | `= generated_utc + decay_half_life_h`；`> generated_utc`；过期边界为**闭左**：`now_utc ≥ expires_utc` 即弃用。 |
 | `decay_half_life_h` | 后验随时间回落的半衰期 | 见 §9.3 |
 
 - 静态块与动态块各自携带时间戳，**不得混用**。
-- **时间戳校验（fail-closed）**：`generated_utc` 必须是带**显式偏移量**的 ISO-8601；缺失 / 非法 / 裸（naive）时间戳一律**报错**，不得静默替换为当前时间或臆断时区（r3 已实施，见 §13.4）。
+- **时间戳校验（fail-closed）**：`generated_utc` 必须是带**显式偏移量**的 ISO-8601；缺失 / 非法 / 裸（naive）时间戳一律**报错**，**不得**静默替换为当前时间或臆断时区。
+- **不得补当前时间**：`generated_utc` 缺失时**拒绝**生成该块，**绝不**用 `now()` 兜底——否则无时间戳的旧数据会被伪装成"刚生成"，获得虚假新鲜度。
+- **过期边界统一（r4）**：`expires_utc` 是**硬 TTL** 的到期**瞬间**，该瞬间即**失效**（`now_utc ≥ expires_utc`）；因此有效区间为 `Δt < half_life`，软衰减 $\lambda \in (0.5, 1]$。原文"`>` / `Δt ≥ half_life`"并存的边界冲突（恰为 `24:00:00` 时）由此消除。
 
 ---
 
@@ -399,6 +476,9 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 
 > 该式即体现你的观察：盘整 ⇒ `spread≈0` ⇒ RANGE 先验高；强动量 ⇒ `spread` 大 ⇒ RANGE 先验收缩、方向先验突出。
 
+> **`w_range` 的定位（r4 · 防重复计权）**：`w_range(regime)` 是**启发式先验修饰项（heuristic prior modifier）**，**不是**一份独立的统计证据。因 `regime` 与 `spread` **同源强正相关**（§2），`spread` 已决定 RANGE 的基础权重，`regime` 只是对同一类市场状态信息做**启发式再调制**——同一组 `p_up` 仅因 `regime` 标签不同，RANGE 原始权重即可相差约 2.6 倍（如 `STRONG MOMENTUM 0.5` vs `CONSOLIDATION RANGE 1.3`）。这**是**有意的先验调整，**不是**两份独立证据的叠加。
+> **由此产生的约束**：Phase 2 引入外部指标时，**不得**把 `regime` 再当作一份**独立似然**重复加入；其"强弱"信息已在先验的 `w_range` 中体现（§4.4.1）。
+
 ### 9.2 似然与阈值
 
 - **Producer 侧（冻结）**：无外部指标，似然**恒等退化为均匀** `{UP: 1/3, DOWN: 1/3, RANGE: 1/3}`，后验 == 先验（§4.4.1）。
@@ -412,7 +492,11 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
   $posterior_t \propto \lambda \cdot posterior_0 + (1-\lambda) \cdot prior$，再归一化。
   即证据带来的相对增益随时间**退回到 MC 锚定先验** `prior`。
   **注（r2 修正）**：旧式 `posterior_0 · 2^(−Δt/half_life)` 对所有状态同乘同一系数，归一化后**完全抵消、不会回落**；必须引入基线项 `prior` 才有效。
-- **硬性过期 vs 软性衰减**：`expires_utc` 是**硬 TTL**（`generated_utc + half_life` 小时），超时即弃用（§7）；衰减是 TTL 内的**软性**权重调节。两者由此不冲突：$\Delta t = 0 \Rightarrow \lambda = 1$（无回落）；$\Delta t = \text{half\_life} \Rightarrow \lambda = 1/2$（回落到 `prior` 与后验的中值）；$\Delta t \ge \text{half\_life}$（过期）后直接拒绝。
+- **硬性过期 vs 软性衰减（r4 边界统一）**：`expires_utc` 是**硬 TTL**（`generated_utc + half_life` 小时），过期边界为**闭左**：`now_utc ≥ expires_utc` 即弃用（§7）。衰减是 TTL 内的**软性**权重调节：
+  - $\Delta t = 0 \Rightarrow \lambda = 1$（无回落）；
+  - $0 < \Delta t < \text{half\_life} \Rightarrow \lambda \in (0.5, 1)$（向 `prior` 回落）；
+  - $\Delta t \ge \text{half\_life}$（等价于 `now_utc ≥ expires_utc`）→ **直接拒绝**，不再计算回落。
+  因此软衰减在有效区间内 $\lambda \in (0.5, 1]$，**不会**触及 $\lambda = 0.5$——原文"$\Delta t = \text{half\_life} \Rightarrow \lambda = 1/2$"与"$\Delta t \ge \text{half\_life}$ 即过期"并存的边界冲突（恰为 `24:00:00` 时）由此消除。
 - Producer 侧 `expires_utc = generated_utc + 24h`；Consumer 超时即弃用（§7）。
 
 ---
@@ -420,7 +504,15 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 ## 10. 向后兼容与边界
 
 - **Additive only**：`schema_version` 升 `1.2.0`；既有字段与 `fib` 保留，`range_90` 语义不变。
-- **打标顺序与版本单调性**：Producer 内 `fib`（1.1.0）在前、概率（1.2.0）在后；两模块单独运行（`process()` / `segment_prob_data()`）时**均不得下调**已存在的更高 `schema_version`（[fib_mc_segment.py](../fib_mc_segment.py) r2 已修；[prob_mc_segment.py](../prob_mc_segment.py) r3 已修，见 §13）。
+- **打标顺序**：Producer 内 `fib`（1.1.0）在前、概率（1.2.0）在后；两模块单独运行（`process()` / `segment_prob_data()`）。**版本只升不降**：任一模块都不得把已存在的更高 `schema_version` 改写为更低值（[fib_mc_segment.py](../fib_mc_segment.py) r2 已修；[prob_mc_segment.py](../prob_mc_segment.py) r3 已修）。
+- **版本三分法与高版本整体拒绝（r4 定论）**：读入既有 `schema_version`（metadata 及块级）后，按下列规则处理，**无第四种分支**：
+  - **缺失** → 补写为 `1.2.0`；
+  - **低于** `1.2.0`（如 `1.1.0`）→ 升级为 `1.2.0`（additive）；
+  - **等于** `1.2.0` → 幂等，不改写；
+  - **高于** `1.2.0`（如 `1.3.0`）→ **整体拒绝**：抛错终止，**既不降写、也不在未知结构上执行任何 additive 修改**。理由：`schema_version` 更高意味着存在本规格**未知的字段与语义**，"不降级"并不等于"可以安全修改"。
+  - **不可解析**（非 `X.Y.Z` 全数字段，如 `"2.0.x"` / `"v1"`）→ **拒绝**，**严禁**按"最小版本"处理（否则 `2.0.x` 会被误判为旧版并被降写）。
+
+  > 一致性要求：同一 payload 内 metadata 与块级（`prob_bands` / `belief`）的版本声明**必须一致**，不得出现"metadata 保留高版本、块级强标 `1.2.0`"的分裂声明。
 - **缺原料 fail-closed 拒绝**：概率打标要求每个 pair 均带 `distribution` 原料；任一 pair 缺料即**整体拒绝**（抛错），**绝不**产出「被误标为 1.2.0、但结构不全」的 payload（r3 已实施，见 §13.4）。
 - **向前生效**：仅新产物带新增块；历史产物不改写（P-5）。
 - **消费兼容**：消费者必须容忍 `distribution` / `prob_bands` / `belief` 缺失（早期产物）——按 §7 降级，不报错。
@@ -436,6 +528,15 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 - `interface.py` 第二阶段动态实现（单独授权）。
 - 外部指标数据管线的具体实现。
 - 任何实盘下单/执行路径改动。
+
+> **r4 修订边界（本轮）**：本轮**只补契约文本**（公式 / 语义 / 不变量 / 边界 / 命名保留说明 / 消费语义约束）。据此**明确不做**：
+> - 不重新设计 Student-t MC 算法、贝叶斯公式或 `w_range` 权重数值；
+> - 不改任何冻结参数（§9）、不改任何字段名（含 `shape.mode`、`method`、`prob_mass`，见 §4.3）；
+> - 不改 [fx_monte_carlo.py](../fx_monte_carlo.py) 与 [prob_mc_segment.py](../prob_mc_segment.py) 的算法行为；
+> - 不为本轮修订新建平行规格文件（同一份回填，避免双真理源）；
+> - 不进入 Consumer Phase 2（RSI / MA / 成交量等外部证据的接入与标定）。
+>
+> 引擎侧代码修订（drift 定义、`expected_price` 语义、YAML 参数校验、数据质量校验等）单独排期，见 §13.5「代码侧待办」。
 
 ---
 
@@ -474,6 +575,7 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 | r1 | 2026-11-17 | 初版冻结（§9 参数固化、§12 勾选、Owner 签署）。 |
 | r2 | 2026-11-17 | 并入外部评审（Codex `v1.0.1`）有效意见；修正 §9.3 衰减公式；补 §4.3.1-9/10/11、§7 判定优先级、§9.1 匹配规则、§10 版本单调性；修 §2/V-4 表格转义。**正文以本文件为唯一真理源。** |
 | r3 | 2026-11-17 | 并入第二轮外部评审（Codex P1–P3，见 §13.4）：§0.1 基准产物改由**形态**定义；§4.4/§2 `likelihood` 措辞统一；§4.5 `regime` 表述澄清；§10 版本单调性与缺料 fail-closed。代码侧 [prob_mc_segment.py](../prob_mc_segment.py) 修版本单调性 / 缺料拒绝 / 时间戳严格校验。 |
+| r4 | 2026-11-17 | 并入第三轮外部评审（ChatGPT，P0/P1/P2，见 §13.5）：补 `range_90_pct` 公式与单位（§2 / §4.3.2）、L1 近似等概率语义（§4.3）、`distribution` 压缩摘要定位（§2.1）、统计量计算口径（§4.2.1）、分位数单调性 / 有效性不变量（§6 V-1/V-2）、`shape.mode` 语义保留（§4.3.1）、`current` 与带索引自洽（§4.3.1）、`verdict`↔`posterior` 推导（§7.1）、TTL 边界闭左统一（§8 / §9.3）、`w_range` 启发式定位（§9.1）、退化输出结构完整定义（§4.3.1）、高版本整体拒绝（§10）、消费语义约束（§5.4）。**不改冻结参数、字段名、算法与 `fib`**；代码侧待办见 §13.5。 |
 
 ### 13.2 外部评审处置
 
@@ -510,3 +612,52 @@ prior_i    = raw_i / Σ_j raw_j                     # 归一化
 | 5 | P2 | §4.4.1 与 §4.5 对 `regime` 自相矛盾 | **采纳** → §4.5 改为「上下文记录；仅影响先验 `w_range`，不作方向证据」 |
 | 6 | P2 | `_expires_utc()` 静默接受无效 / 裸时间戳 | **采纳** → 改为 `_utc_datetime()` 严格校验（缺失 / 非法 / naive 一律报错，不造时间、不臆断时区），并归一化到 UTC；单测 `test_belief_rejects_naive_and_invalid_timestamps` / `test_belief_normalizes_offset_to_utc` |
 | 7 | P3 | `likelihood` 字段「非线性意义上」措辞易混 / 疑似笔误 | **采纳** → §4.4 / §2 统一为「归一化权重（Producer 侧恒等退化为均匀，不作方向证据）」 |
+
+### 13.5 第三轮外部评审处置（r4 · 2026-11-17）
+
+来源：ChatGPT 第三轮评审（P0/P1/P2，经对话转发，非文件；同时覆盖本规格与 `fx_monte_carlo.py` / `prob_mc_segment.py`）。**本轮只处置规格契约文本部分；代码侧意见单列于本节末「代码侧待办」。**
+
+#### 13.5.1 规格契约缺口（逐条处置）
+
+| # | 级别 | 评审意见 | 处置 |
+|---|------|----------|------|
+| 1 | P0 | `range_90_pct < 1.2` 缺少计算定义（分母 / 单位 / 边界未定） | **采纳（补定义）** → §2 术语表新增口径行；§4.3.2 明确 `range_90_pct = (q95 − q05) / current_price × 100`，单位**百分比（%）**（`1.2` 即 1.2%，非比例），与既有 `fib` 口径一致；并规定 `current_price <= 0` / 缺失 / 非有限时该宽度**不可用**，按 §7 走 `NO_EDGE`。**不改冻结阈值 `1.2`。** |
+| 2 | P0 | L1 所谓「等概率带」实为插值近似，非样本实测等概率 | **采纳（补语义，保留命名）** → §4.3 引言新增「近似语义（必读）」：`prob_mass=0.20` 是**构造值**而非实测命中概率；`method` 字段**保留** `"equal_probability_mass"`（改名会破坏已冻结 1.2.0 字段值，违反 P-1），改以文本明确其为**基于插值分位函数的近似**；Consumer **不得**把 `prob_mass` 当作实际命中概率使用。 |
+| 3 | P0 | `distribution` 有效性校验不完整（缺分位值单调性等关系约束） | **采纳** → §6 V-1 / V-2 扩写：追加 `min ≤ q01 ≤ q05 ≤ … ≤ q99 ≤ max`、`min/max` 有限正数且 `min ≤ max`、`std ≥ 0`、`simulations > 0`、`forecast > 0`、`student_t_df > 0`、全部分位值有限为正且随概率**非递减**。特别注明：**分位键顺序正确 ≠ 分位值顺序正确**。 |
+| 4 | P1 | `shape.mode` 易被误读为真实众数（实为 Pearson 经验估计） | **采纳（补语义，保留命名）** → §4.3.1 明确 `mode ≈ 3·median − 2·mean` 是 **Pearson 经验众数估计**，非样本频数众数 / 直方图 / KDE 结果，**不得**用于直接推断"最高概率价格"；字段名按 P-1 保留。 |
+| 5 | P1 | `percentile_rank` 与价格几何位置可能冲突，`position_in_band_pct` 可能被 clamp 掩盖矛盾 | **采纳** → §4.3.1-10 补一致性约束：`current.index == band_index` 且 `current.price_lo/hi == bands[band_index].price_lo/hi`；`position_in_band_pct` 仅描述价格几何位置，**无**重新确定概率带归属之权；实质性不一致（rank 与价格不相容）**fail-closed 拒绝**，不用 clamp 隐藏。 |
+| 6 | P1 | `verdict` 缺少完整一致性校验（仅验 `argmax`） | **采纳** → 新增 §7.1「verdict 推导」：按 Degenerate / 窄区间 / `max(posterior) < tau` / 否则 `argmax` 的优先级显式给出 `verdict` 判定表，并追加 V-7 扩展：`edge.value == max(posterior)`、`edge.spread == max(posterior) − 第二大的 posterior`；防止「posterior 已更新、verdict 仍旧」的不一致。 |
+| 7 | P1 | 硬 TTL 与软衰减边界不一致（`>` vs `>=`） | **采纳（统一）** → §8 / §9.3 定为**闭左**：`now_utc ≥ expires_utc` 即失效；有效区间内 $\lambda \in (0.5, 1]$，**不会**触及 $\lambda = 0.5$；`Δt ≥ half_life` 等价于硬过期，直接拒绝、不再计算回落。 |
+| 8 | P1 | `w_range(regime)` 与 `spread` 同源，可能重复计权 | **采纳（补定位，不改数值）** → §9.1 新增「`w_range` 的定位（r4 · 防重复计权）」：明确 `w_range` 是**启发式先验调节项（heuristic prior modifier）**，**不是**独立统计证据；`regime` 与 `spread` 同源，故 Phase 2 **不得**再把 `regime` 作为一份独立证据重复加入似然。冻结数值不变。 |
+| 9 | P1 | `distribution` 被称作"原料"，但其为压缩摘要而非完整分布 | **采纳（补术语分层）** → 新增 §2.1「数据分层与压缩程度（防误读）」：区分 `MC terminal paths`（原始路径）→ `distribution`（**压缩摘要**，无法恢复经验分布）→ `prob_bands`（基于摘要的近似分位带）→ `belief`（信念状态）；并加术语纪律，防止 Consumer 误以为拿到完整模拟分布。 |
+| 10 | P2 | 统计量（`std`/`skew`/`kurtosis`/`quantiles`/`mode`）未规定计算口径 | **采纳** → 新增 §4.2.1「统计量计算定义」：`std` 用**总体**标准差（`ddof=0`）；`skew` 用总体标准化三阶矩；`kurtosis` 用 **Fisher 超额峰度**（正态 = 0，非 Pearson 的 3）；`quantiles` 用 numpy 默认 **`linear`** 插值；`mode` 用 Pearson 经验估计。 |
+| 11 | P2 | `belief` 数值校验缺有限性检查（不能只靠概率求和判有效） | **采纳** → §4.4 字段表 + §6 V-6 扩写：`prior` / `likelihood` / `posterior` 各分量必须 `math.isfinite`；`edge.value` / `edge.spread` / `threshold_tau` / `decay_half_life_h` 亦须有限且满足各自不变量。 |
+| 12 | P2 | 分位带退化的输出结构未完整规定 | **采纳** → §4.3.1 补完整退化定义：相邻边界相等（含四舍五入致相等）→ 该组 `prob_bands.degenerate = true`；`bands[]` **仍恒为 5 个元素**；零宽带处 `position_in_band_pct` 按 §4.3.1-11 处理；并定义 `effective_degenerate = distribution.degenerate OR prob_bands.degenerate`，作为 `belief` 的唯一退化输入（阻塞 §4.3.1 与 belief 之间的退化传递缺口）。 |
+| 13 | P2 | 版本兼容性需明确"高版本"边界（不降级 ≠ 可安全改动） | **采纳** → §10 增加「版本三分法与高版本整体拒绝（r4 定论）」：缺失→补写；低→升级；等→幂等；**高→整体拒绝**（不降写、不在未知结构上做 additive 修改）；**不可解析→拒绝**（严禁按最小版本处理）；并要求 metadata 与块级版本声明一致。 |
+
+#### 13.5.2 复核确认（评审中判定"设计合理、建议保留"的部分）
+
+| 设计 | 处置 |
+|------|------|
+| `copy.deepcopy()` 不污染原始 MC payload | 保留（实现行为，不改）。 |
+| Producer 侧 likelihood 恒等均匀、`posterior == prior` | 保留（§4.4.1 已定；评审确认"非计算错误，但不得当作独立确认信号"，已入 §5.4 消费语义约束）。 |
+| `p_up`/`p_down` 为方向概率唯一真理源 | 保留（P-2）。 |
+| UTC 显式偏移检查（删除缺失时补当前时间的 fallback） | 保留（§8；代码侧 r3 已实施）。 |
+| 五条概率带 `band_count=5` | 保留（冻结参数，不改）。 |
+| Pearson 经验式 mode / Fisher 超额峰度 / `static_reference` | 保留（补语义与口径定义，不改算法）。 |
+
+#### 13.5.3 代码侧待办（本轮不改代码 · 单独排期）
+
+以下评审意见针对 [fx_monte_carlo.py](../fx_monte_carlo.py)：**已受理，但按本轮边界（§11）暂不修改**，留待代码修订步骤统一实施，避免未经审议即改动冻结 Schema 语义。
+
+| # | 级别 | 位置 | 待办（已受理） |
+|---|------|------|------|
+| C1 | P0 | `run_mc()` drift | **Owner 已裁定采用「方案 B：算术漂移 + 半方差修正」**：先将历史对数收益率转换为算术收益率漂移，再套用 GBM 半方差修正，使模拟对数收益均值与历史样本一致；`ann_drift_pct` 定义须与之一致。须以合成数据验证（已知均值方差 → 校验模拟对数收益均值与累计漂移）。 |
+| C2 | P0 | `expected_price` 厚尾 | **Owner 已裁定「保留字段名 + 加语义说明」**：Student-t 厚尾下 $E[e^X]$ 理论不存在，样本均值非稳定理论期望；字段名保留（P-1），但须在契约中标注其"有限样本经验均值、非可靠理论期望"语义，并考虑更稳定统计量。 |
+| C3 | P1 | YAML 校验 | 补参数有效性校验：`pairs` 非空且不重复、`simulations` 正整数、`confidence ∈ (0,1)`、`student_t_df > 2`、各 `lookback` 足以计算有效收益率、`forecast` 正整数、`max_history_files` 非负整数；禁止 `int(2.5) → 2` 式静默截断。 |
+| C4 | P1 | `fetch_data()` 数据质量 | 清 `inf`/`-inf`、校验全序列为正、索引递增、无重复时间戳、明确是否使用未完成 K 线（D/W/M 须有统一规则）。 |
+| C5 | P1 | `range_90` 命名 | 使字段名与真实置信水平一致，或在校验中强制 `CONFIDENCE == 0.90`。 |
+| C6 | P1 | 概率字段语义 | 在契约中写明 `percentile_rank`（价格位置）与 `p_down`（`P(final ≤ current)`）实为同一事件的两种表述，`p_up` 用严格 `>`，不得作为两份独立证据重复使用。 |
+| C7 | P1/P2 | `save_batch_mc_safely()` 等 | `max_files=0` 语义、观察日志与批次提交的成功关系、单 pair 失败隔离、文件名同分钟覆盖、随机种子加 timeframe、记录实际行情时间范围、区分批次 vs 单项 `generated_utc`、CLI 互斥参数。 |
+
+> **验收要求（与评审一致）**：不能只看 `pytest passed`，还须验证**实际生成的 JSON**；用**合成数据**独立验证 drift、`expected_price`、先验 / 后验、分位带及边界；覆盖 1.1.0 / 1.2.0 / 更高版本三种处理路径；确认既有 `fib` 与字段**无变化**。

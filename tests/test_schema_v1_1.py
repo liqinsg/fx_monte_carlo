@@ -34,9 +34,16 @@ def latest_processed_data():
     return processed
 
 def test_metadata_schema_version(latest_processed_data):
-    """验证顶层 metadata 是否包含 v1.1.0 版本声明"""
+    """验证顶层 metadata 的 schema_version 未被降级。
+
+    概率标注（1.2.0）为 additive 叠加，产物版本只增不减；因此这里断言
+    「≥ 1.1.0」而不是钉死等于 1.1.0 —— 后者会与「向前生效」的版本单调性冲突。
+    """
     metadata = latest_processed_data.get("metadata", {})
-    assert metadata.get("schema_version") == "1.1.0", "Metadata 缺少或未正确声明 schema_version '1.1.0'"
+    version = metadata.get("schema_version")
+    assert version in {"1.1.0", "1.2.0"}, (
+        f"Metadata schema_version 未声明或低于 1.1.0: {version!r}"
+    )
 
 def test_all_pairs_contain_v1_1_extensions(latest_processed_data):
     """验证所有标的 (Results) 内部的 fib 块是否包含所有 v1.1.0 扩展字段与 risk_model Gate"""
