@@ -16,7 +16,13 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from interface import get_latest_fib_mc_data
+from interface import (
+    example_calculate_position_multiplier,
+    get_latest_fib_mc_data,
+    get_pair_advisory,
+    is_pair_advisory_fresh,
+    is_snapshot_fresh,
+)
 
 
 FIB_ZONES = [
@@ -120,3 +126,115 @@ def test_contract_invariants_for_all_pairs(latest_contract_data):
         assert labels.get("fib_position") == (
             f"FIB {zone_index + 1}/6 {round(expected_zone_pos)}% in {expected_tag}"
         ), f"标的 {pair} 的 labels.fib_position 不一致: {labels.get('fib_position')}"
+
+
+# ==============================================================================
+# interface.py 消费侧契约：时效（硬 TTL 闭左）与 fail-closed 标注状态
+# 对应 docs/MC_PROB_ANNOTATION_SPEC_v1.0.md §5 / §7 / §9.3 与
+# docs/MC_FIB_V1_2_ACTION_PLAN.md P0-3 / P0-4。
+# 全部为离线单元测试（合成 dict，无网络、无文件 IO）。
+# ==============================================================================
+GEN_UTC = "2026-11-17T00:00:00+00:00"
+EXP_UTC = "2099-01-01T00:00:00+00:00"  # 远期，避免用例随时间自然失效
+NOW_UTC = datetime.datetime(2026, 11, 17, 12, 0, 0, tzinfo=datetime.timezone.utc)
+EXPIRED_UTC = "2026-11-16T00:00:00+00:00"
+
+
+def _rec(**overrides):
+    """构造一个 healthy 的 pair 记录，再按需覆盖。"""
+    rec = {
+        "current_price": 1.10,
+        "range_90": [1.08, 1.13],  # 宽度 ≈ 4.5% > 1.2 门限
+        "distribution": {"degenerate": False},
+        "prob_bands": {"degenerate": False},
+        "belief": {
+            "verdict": "UP",
+            "generated_utc": GEN_UTC,
+            "expires_utc": EXP_UTC,
+            "advisory": True,
+        },
+        "fib": {"zone_index": 2},
+    }
+    rec.update(overrides)
+    return rec
+
+
+def test_is_pair_advisory_fresh_happy_path():
+    assert is_pair_advisory_fresh(_rec(), NOW_UTC) is True
+
+
+def test_is_pair_advisory_fresh_closed_left_boundary():
+    """硬 TTL **闭左**：now == expires 即失效（§9.3 / V-9）。"""
+    at_expiry = datetime.datetime(2026, 11, 18, 0, 0, 0, tzinfo=datetime.timezone.utc)
+    boundary_rec = _rec(belief={"expires_utc": "2026-11-18T00:00:00+00:00"})
+    assert is_pair_advisory_fresh(boundary_rec, at_expiry - datetime.timedelta(seconds=1)) is True
+    assert is_pair_advisory_fresh(boundary_rec, at_expiry) is False
+
+
+def test_is_pair_advisory_fresh_fail_closed_on_bad_inputs():
+    assert is_pair_advisory_fresh(None, NOW_UTC) is False
+    assert is_pair_advisory_fresh({}, NOW_UTC) is False  # 无 belief（1.1.0 及更早产物）
+    assert is_pair_advisory_fresh(_rec(belief={}), NOW_UTC) is False  # 缺 expires_utc
+    assert is_pair_advisory_fresh(
+        _rec(belief={"expires_utc": "2026-11-18T00:00:00"}), NOW_UTC  # 裸时间戳
+    ) is False
+    assert is_pair_advisory_fresh(
+        _rec(belief={"expires_utc": "not-a-timestamp"}), NOW_UTC
+    ) is False
+
+
+def test_naive_now_utc_is_rejected():
+    with pytest.raises(ValueError):
+        is_pair_advisory_fresh(_rec(), datetime.datetime(2026, 11, 17, 12, 0, 0))
+
+
+def test_is_snapshot_fresh_requires_all_pairs():
+    fresh = _rec()
+    stale = _rec(belief={"expires_utc": EXPIRED_UTC, "verdict": "UP"})
+    assert is_snapshot_fresh({"results": {"A": fresh, "B": fresh}}, NOW_UTC) is True
+    assert is_snapshot_fresh({"results": {"A": fresh, "B": stale}}, NOW_UTC) is False
+    assert is_snapshot_fresh({"results": {}}, NOW_UTC) is False
+    assert is_snapshot_fresh(None, NOW_UTC) is False
+
+
+def test_get_pair_advisory_states():
+    assert get_pair_advisory(None)["state"] == "invalid"
+    assert get_pair_advisory({})["state"] == "invalid"  # 老产物无新增块
+    assert get_pair_advisory(_rec())["state"] == "healthy"
+    assert get_pair_advisory(_rec(fib={}))["state"] == "healthy"  # 不依赖 fib
+
+    assert get_pair_advisory(_rec(prob_bands={"degenerate": True}))["state"] == "degenerate"
+    assert get_pair_advisory(_rec(distribution={"degenerate": True}))["state"] == "degenerate"
+
+    narrow = get_pair_advisory(_rec(range_90=[1.10, 1.1005]))  # 宽度 ≈ 0.045% < 1.2
+    assert narrow["state"] == "narrow_range"
+    assert narrow["narrow_range"] is True
+    assert get_pair_advisory(_rec(range_90=None))["state"] == "narrow_range"  # 宽度不可用 ≠ 不窄
+
+
+def test_get_pair_advisory_stale_downgrades_verdict():
+    """过期后不得透传旧 verdict（P0-4 fail-closed）。"""
+    adv = get_pair_advisory(
+        _rec(belief={"expires_utc": EXPIRED_UTC, "verdict": "UP"}), NOW_UTC
+    )
+    assert adv["state"] == "stale"
+    assert adv["stale"] is True
+    assert adv["verdict"] == "NO_EDGE"
+
+
+def test_example_multiplier_is_fail_closed(monkeypatch):
+    """P0-3：数据缺失或非 healthy 时，绝不返回 K = 1.0。"""
+    monkeypatch.setattr("interface.get_pair_analytics", lambda *a, **k: None)
+    res = example_calculate_position_multiplier("EURUSD=X", "20261117")
+    assert res["multiplier_k"] is None
+    assert res["status"] == "NO_ADVISORY"
+
+    monkeypatch.setattr("interface.get_pair_analytics", lambda *a, **k: _rec(range_90=None))
+    res = example_calculate_position_multiplier("EURUSD=X", "20261117")
+    assert res["multiplier_k"] is None
+    assert res["advisory_state"] == "narrow_range"
+
+    monkeypatch.setattr("interface.get_pair_analytics", lambda *a, **k: _rec(fib={"zone_index": 3}))
+    res = example_calculate_position_multiplier("EURUSD=X", "20261117")
+    assert res["multiplier_k"] == 1.0
+    assert res["advisory_state"] == "healthy"

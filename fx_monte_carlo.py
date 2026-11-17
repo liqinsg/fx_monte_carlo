@@ -275,7 +275,15 @@ def run_mc(pair: str, day_str: str):
     if len(log_returns) < 2:
         return None, False
 
-    drift = float(np.mean(log_returns) * periods_year)
+    # ── 漂移 · 方案 B：算术漂移 + GBM 半方差修正 ──────────────────────
+    # 历史对数收益均值 m = mean(log_returns) 是「对数漂移」(μ − σ²/2)，
+    # 不能直接当作算术漂移 μ 使用（否则模拟路径会多出 −σ²/2 的系统性下偏）。
+    # 先换算为算术漂移 μ_step = m + σ²/2，再由 GBM 关系
+    # step_log_drift = μ_step − σ²/2 得回 m，
+    # 从而保证每步模拟对数收益均值 == 历史样本对数收益均值。
+    log_ret_mean = float(np.mean(log_returns))
+    log_ret_var = float(np.var(log_returns))  # 总体方差 (ddof=0) = 每步 σ²
+    drift = (log_ret_mean + 0.5 * log_ret_var) * periods_year  # 年化算术漂移 μ
     vol = float(np.std(log_returns) * np.sqrt(periods_year))
     dt = 1 / periods_year
 
@@ -293,6 +301,7 @@ def run_mc(pair: str, day_str: str):
         * scale_factor
     )
 
+    # 半方差修正项：step_drift == log_ret_mean（见上方方案 B 推导）
     step_drift = (drift / periods_year) - 0.5 * (vol**2) / periods_year
     step_diffusion = vol * np.sqrt(dt) * t_shocks
     log_returns_matrix = step_drift + step_diffusion
@@ -358,6 +367,9 @@ def run_mc(pair: str, day_str: str):
         "touch_lower_pct": touch_lower,
         "var_95": round(var_95, 4),
         "cvar_95": round(cvar_95, 4),
+        # expected_price：MC 终值的**有限样本经验均值**，非理论期望。
+        # Student-t 厚尾（df=5）下 E[e^X] 理论不存在，样本均值随重抽样不稳定，
+        # 不得作为可靠理论期望使用；稳健位置量请取 distribution.quantiles["0.50"]（中位数）。
         "expected_price": round(float(np.mean(final)), dec),
         "regime": regime,
         "distribution": distribution,
