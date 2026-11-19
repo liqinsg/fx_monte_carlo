@@ -1,23 +1,23 @@
 {
   "timeframe": "D",
   "pair": "GBPAUD",
-  "current_price": 1.96148,
-  "ann_drift_pct": 4.48,
-  "ann_vol_pct": 5.39,
+  "current_price": 1.96249,
+  "ann_drift_pct": 5.58,
+  "ann_vol_pct": 5.35,
   "range_90": [
-    1.93913,
-    1.98757
+    1.94068,
+    1.98941
   ],
-  "percentile_rank": 45.0,
-  "p_up": 55.0,
-  "p_down": 45.0,
-  "p_up_pct": 55.0,
-  "p_down_pct": 45.0,
-  "touch_upper_pct": 6.1,
-  "touch_lower_pct": 6.3,
-  "var_95": -0.0114,
-  "cvar_95": -0.0156,
-  "expected_price": 1.96351,
+  "percentile_rank": 43.7,
+  "p_up": 56.3,
+  "p_down": 43.7,
+  "p_up_pct": 56.3,
+  "p_down_pct": 43.7,
+  "touch_upper_pct": 5.9,
+  "touch_lower_pct": 6.5,
+  "var_95": -0.0111,
+  "cvar_95": -0.0149,
+  "expected_price": 1.96487,
   "regime": "\ud83d\udd39 D NEUTRAL",
   "distribution": {
     "source": "mc_terminal_paths",
@@ -25,38 +25,38 @@
     "forecast": 5,
     "student_t_df": 5,
     "quantiles": {
-      "0.01": 1.92668,
-      "0.05": 1.93913,
-      "0.10": 1.94541,
-      "0.25": 1.95403,
-      "0.50": 1.96344,
-      "0.75": 1.97312,
-      "0.90": 1.98202,
-      "0.95": 1.98757,
-      "0.99": 1.99884
+      "0.01": 1.92811,
+      "0.05": 1.94068,
+      "0.10": 1.94645,
+      "0.25": 1.95515,
+      "0.50": 1.96472,
+      "0.75": 1.97446,
+      "0.90": 1.98359,
+      "0.95": 1.98941,
+      "0.99": 2.00119
     },
-    "mean": 1.96351,
-    "std": 0.015,
-    "min": 1.86009,
-    "max": 2.03808,
-    "skew": -0.0475,
-    "kurtosis": 1.1427,
+    "mean": 1.96487,
+    "std": 0.01509,
+    "min": 1.90421,
+    "max": 2.06257,
+    "skew": 0.1245,
+    "kurtosis": 1.0093,
     "degenerate": false
   },
   "lookback": 90,
   "forecast": 5,
   "simulations": 5000,
-  "generated_utc": "2026-11-18T07:16:49.520019+00:00",
+  "generated_utc": "2026-11-19T07:16:01.224935+00:00",
   "fib": {
     "schema_version": "1.1.0",
     "levels": {
-      "fib_0": 1.93913,
-      "fib_23.6": 1.950562,
-      "fib_38.2": 1.957634,
-      "fib_50": 1.96335,
-      "fib_61.8": 1.969066,
-      "fib_78.6": 1.977204,
-      "fib_100": 1.98757
+      "fib_0": 1.94068,
+      "fib_23.6": 1.95218,
+      "fib_38.2": 1.959295,
+      "fib_50": 1.965045,
+      "fib_61.8": 1.970795,
+      "fib_78.6": 1.978982,
+      "fib_100": 1.98941
     },
     "zones": [
       {
@@ -67,8 +67,8 @@
           0.236
         ],
         "price": [
-          1.93913,
-          1.950562
+          1.94068,
+          1.95218
         ]
       },
       {
@@ -79,8 +79,8 @@
           0.382
         ],
         "price": [
-          1.950562,
-          1.957634
+          1.95218,
+          1.959295
         ]
       },
       {
@@ -91,8 +91,8 @@
           0.5
         ],
         "price": [
-          1.957634,
-          1.96335
+          1.959295,
+          1.965045
         ]
       },
       {
@@ -103,8 +103,8 @@
           0.618
         ],
         "price": [
-          1.96335,
-          1.969066
+          1.965045,
+          1.970795
         ]
       },
       {
@@ -115,8 +115,8 @@
           0.786
         ],
         "price": [
-          1.969066,
-          1.977204
+          1.970795,
+          1.978982
         ]
       },
       {
@@ -127,8 +127,8 @@
           1.0
         ],
         "price": [
-          1.977204,
-          1.98757
+          1.978982,
+          1.98941
         ]
       }
     ],
@@ -140,14 +140,14 @@
         0.5
       ],
       "price": [
-        1.957634,
-        1.96335
+        1.959295,
+        1.965045
       ],
-      "position_in_zone_pct": 67.3
+      "position_in_zone_pct": 55.6
     },
     "zone_index": 2,
-    "range_90_pct": 2.47,
-    "ratio_pos": 0.4614,
+    "range_90_pct": 2.483,
+    "ratio_pos": 0.4476,
     "breakout": false,
     "degenerate": false,
     "risk_model": {
@@ -157,7 +157,7 @@
     },
     "labels": {
       "fib_zone": "FIB F382 | Below Equilibrium",
-      "fib_position": "FIB 3/6 67% in F382",
+      "fib_position": "FIB 3/6 56% in F382",
       "action": "BUY_LIMIT"
     },
     "fib_regime_label": "\ud83e\udded FIB F382 Below Equilibrium | \ud83d\udd39 D NEUTRAL"
@@ -171,62 +171,62 @@
       {
         "index": 0,
         "tag": "Q0-20",
-        "price_lo": 1.86009,
-        "price_hi": 1.95116,
+        "price_lo": 1.90421,
+        "price_hi": 1.95225,
         "prob_mass": 0.2
       },
       {
         "index": 1,
         "tag": "Q20-40",
-        "price_lo": 1.95116,
-        "price_hi": 1.95968,
+        "price_lo": 1.95225,
+        "price_hi": 1.96089,
         "prob_mass": 0.2
       },
       {
         "index": 2,
         "tag": "Q40-60",
-        "price_lo": 1.95968,
-        "price_hi": 1.96731,
+        "price_lo": 1.96089,
+        "price_hi": 1.96862,
         "prob_mass": 0.2
       },
       {
         "index": 3,
         "tag": "Q60-80",
-        "price_lo": 1.96731,
-        "price_hi": 1.97609,
+        "price_lo": 1.96862,
+        "price_hi": 1.9775,
         "prob_mass": 0.2
       },
       {
         "index": 4,
         "tag": "Q80-100",
-        "price_lo": 1.97609,
-        "price_hi": 2.03808,
+        "price_lo": 1.9775,
+        "price_hi": 2.06257,
         "prob_mass": 0.2
       }
     ],
     "current": {
       "index": 2,
       "tag": "Q40-60",
-      "price_lo": 1.95968,
-      "price_hi": 1.96731,
-      "position_in_band_pct": 23.6
+      "price_lo": 1.96089,
+      "price_hi": 1.96862,
+      "position_in_band_pct": 20.7
     },
     "band_index": 2,
     "shape": {
-      "mean": 1.96351,
-      "median": 1.96344,
-      "mode": 1.9633,
+      "mean": 1.96487,
+      "median": 1.96472,
+      "mode": 1.96442,
       "quantiles": {
-        "0.05": 1.93913,
-        "0.25": 1.95403,
-        "0.50": 1.96344,
-        "0.75": 1.97312,
-        "0.95": 1.98757
+        "0.05": 1.94068,
+        "0.25": 1.95515,
+        "0.50": 1.96472,
+        "0.75": 1.97446,
+        "0.95": 1.98941
       },
-      "skew": -0.0475,
-      "kurtosis": 1.1427,
-      "prob_below": 45.0,
-      "prob_above": 55.0
+      "skew": 0.1245,
+      "kurtosis": 1.0093,
+      "prob_below": 43.7,
+      "prob_above": 56.3
     },
     "degenerate": false,
     "mode": "static_reference"
@@ -239,16 +239,16 @@
       "RANGE"
     ],
     "prior": {
-      "UP": 0.3039,
-      "DOWN": 0.2486,
-      "RANGE": 0.4475
+      "UP": 0.3192,
+      "DOWN": 0.2477,
+      "RANGE": 0.4331
     },
     "prior_source": "mc_p_up",
     "evidence": [
       {
         "name": "regime",
         "value": "\ud83d\udd39 D NEUTRAL",
-        "spread": 0.1,
+        "spread": 0.126,
         "likelihood": {
           "UP": 0.3333,
           "DOWN": 0.3333,
@@ -262,22 +262,22 @@
       "RANGE": 0.3333
     },
     "posterior": {
-      "UP": 0.3039,
-      "DOWN": 0.2486,
-      "RANGE": 0.4475
+      "UP": 0.3192,
+      "DOWN": 0.2477,
+      "RANGE": 0.4331
     },
     "edge": {
       "argmax": "RANGE",
-      "value": 0.4475,
-      "spread": 0.1436
+      "value": 0.4331,
+      "spread": 0.1139
     },
     "threshold_tau": 0.55,
     "verdict": "NO_EDGE",
     "advisory": true,
     "decay_half_life_h": 24.0,
-    "generated_utc": "2026-11-18T07:16:49.520019+00:00",
-    "expires_utc": "2026-11-19T07:16:49.520019+00:00",
+    "generated_utc": "2026-11-19T07:16:01.224935+00:00",
+    "expires_utc": "2026-11-20T07:16:01.224935+00:00",
     "mode": "static_reference"
   },
-  "date": "2026-11-18"
+  "date": "2026-11-19"
 }
