@@ -5,26 +5,71 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Schedule this script for 00:00 Europe/London on day 1 of each month.
-# For cron implementations that support CRON_TZ, use:
+# Schedule this script at 00:00, 00:05, and 00:10 Europe/London. Cron gives
+# up to three attempts; output-file checks below make later invocations skip
+# timeframes that already succeeded. For cron implementations supporting CRON_TZ:
 #   CRON_TZ=Europe/London
-#   0 0 1 * * <repo-directory>/run_fx_mc.sh
-# Keep this guard so accidental/manual invocations on other London dates
-# don't launch the monthly pipeline.
+#   0,5,10 0 * * * <repo-directory>/run_fx_mc_new.sh
+
+LONDON_NOW="$(TZ=Europe/London date '+%Y-%m-%d %H:%M:%S %Z')"
 LONDON_DAY="$(TZ=Europe/London date +%d)"
-if [[ "$LONDON_DAY" != "01" ]]; then
-    echo "[$(TZ=Europe/London date '+%Y-%m-%d %H:%M:%S %Z')] Not the first day of the month in London; skipping."
-    exit 0
-fi
+LONDON_DOW="$(TZ=Europe/London date +%u)"  # 1=Monday ... 7=Sunday
+# fx_monte_carlo.py timestamps output filenames in UTC, so use UTC date for
+# the existence check (London midnight falls on the previous UTC date in BST).
+UTC_DAY="$(date -u +%Y%m%d)"
+echo "[$LONDON_NOW] FX Monte Carlo schedule check"
 
 # 激活 conda 环境
 source "$HOME/miniconda3/etc/profile.d/conda.sh"
 conda activate ai-sprint
 
-# Run daily Monte Carlo; the main program segments and saves the same MC file.
-python fx_monte_carlo.py D
+# Retry cron entries may overlap if a Monte Carlo run takes over five
+# minutes. Serialize invocations so later ticks check results after the
+# previous run completes instead of starting duplicate work.
+LOCK_FILE="${TMPDIR:-/tmp}/fx_monte_carlo_${UID}.lock"
+exec 9>"$LOCK_FILE"
+flock 9
 
-# Run weekly Monte Carlo too when the London date is Monday.
-if [ "$(TZ=Europe/London date +%u)" -eq 1 ]; then
-    python fx_monte_carlo.py W
+shopt -s nullglob
+overall_status=0
+
+run_if_missing() {
+    local timeframe="$1"
+    local files=("mc_results/mc_${timeframe}_all_pairs_${UTC_DAY}_"*.json)
+
+    if (( ${#files[@]} > 0 )); then
+        echo "[$LONDON_NOW] ${timeframe}: result already exists (${files[0]}); skipping."
+        return 0
+    fi
+
+    echo "[$LONDON_NOW] ${timeframe}: no result for UTC date ${UTC_DAY}; running."
+    if python fx_monte_carlo.py "$timeframe"; then
+        local generated=("mc_results/mc_${timeframe}_all_pairs_${UTC_DAY}_"*.json)
+        if (( ${#generated[@]} > 0 )); then
+            echo "[$LONDON_NOW] ${timeframe}: result saved."
+            return 0
+        fi
+        echo "[$LONDON_NOW] ERROR: ${timeframe} exited successfully but produced no result file."
+    else
+        local rc=$?
+        echo "[$LONDON_NOW] ERROR: ${timeframe} run failed with exit code ${rc}."
+    fi
+    return 1
+}
+
+# Daily: run on weekdays.
+if (( LONDON_DOW <= 5 )); then
+    run_if_missing D || overall_status=1
 fi
+
+# Weekly: run every Monday.
+if (( LONDON_DOW == 1 )); then
+    run_if_missing W || overall_status=1
+fi
+
+# Monthly: run on the first calendar day, including when it falls on a weekend.
+if [[ "$LONDON_DAY" == "01" ]]; then
+    run_if_missing M || overall_status=1
+fi
+
+exit "$overall_status"
