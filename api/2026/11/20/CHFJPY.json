@@ -1,0 +1,283 @@
+{
+  "timeframe": "D",
+  "pair": "CHFJPY",
+  "current_price": 189.081,
+  "ann_drift_pct": -17.04,
+  "ann_vol_pct": 7.36,
+  "range_90": [
+    185.358,
+    191.698
+  ],
+  "percentile_rank": 63.9,
+  "p_up": 36.1,
+  "p_down": 63.9,
+  "p_up_pct": 36.1,
+  "p_down_pct": 63.9,
+  "touch_upper_pct": 6.8,
+  "touch_lower_pct": 6.0,
+  "var_95": -0.0197,
+  "cvar_95": -0.025,
+  "expected_price": 188.461,
+  "regime": "\u26a1 D STRONG MOMENTUM",
+  "distribution": {
+    "source": "mc_terminal_paths",
+    "simulations": 5000,
+    "forecast": 5,
+    "student_t_df": 5,
+    "quantiles": {
+      "0.01": 183.621,
+      "0.05": 185.358,
+      "0.10": 186.084,
+      "0.25": 187.222,
+      "0.50": 188.457,
+      "0.75": 189.639,
+      "0.90": 190.853,
+      "0.95": 191.698,
+      "0.99": 193.325
+    },
+    "mean": 188.461,
+    "std": 1.966,
+    "min": 179.337,
+    "max": 201.76,
+    "skew": 0.2016,
+    "kurtosis": 1.4898,
+    "degenerate": false
+  },
+  "lookback": 90,
+  "forecast": 5,
+  "simulations": 5000,
+  "generated_utc": "2026-11-20T07:04:29.834545+00:00",
+  "fib": {
+    "schema_version": "1.1.0",
+    "levels": {
+      "fib_0": 185.358,
+      "fib_23.6": 186.85424,
+      "fib_38.2": 187.77988,
+      "fib_50": 188.528,
+      "fib_61.8": 189.27612,
+      "fib_78.6": 190.34124,
+      "fib_100": 191.698
+    },
+    "zones": [
+      {
+        "tag": "F0",
+        "label": "Deep Discount",
+        "ratio": [
+          0.0,
+          0.236
+        ],
+        "price": [
+          185.358,
+          186.85424
+        ]
+      },
+      {
+        "tag": "F236",
+        "label": "Discount",
+        "ratio": [
+          0.236,
+          0.382
+        ],
+        "price": [
+          186.85424,
+          187.77988
+        ]
+      },
+      {
+        "tag": "F382",
+        "label": "Below Equilibrium",
+        "ratio": [
+          0.382,
+          0.5
+        ],
+        "price": [
+          187.77988,
+          188.528
+        ]
+      },
+      {
+        "tag": "F5",
+        "label": "Above Equilibrium",
+        "ratio": [
+          0.5,
+          0.618
+        ],
+        "price": [
+          188.528,
+          189.27612
+        ]
+      },
+      {
+        "tag": "F618",
+        "label": "Premium",
+        "ratio": [
+          0.618,
+          0.786
+        ],
+        "price": [
+          189.27612,
+          190.34124
+        ]
+      },
+      {
+        "tag": "F786",
+        "label": "Deep Premium",
+        "ratio": [
+          0.786,
+          1.0
+        ],
+        "price": [
+          190.34124,
+          191.698
+        ]
+      }
+    ],
+    "current_zone": {
+      "tag": "F5",
+      "label": "Above Equilibrium",
+      "ratio": [
+        0.5,
+        0.618
+      ],
+      "price": [
+        188.528,
+        189.27612
+      ],
+      "position_in_zone_pct": 73.9
+    },
+    "zone_index": 3,
+    "range_90_pct": 3.353,
+    "ratio_pos": 0.5872,
+    "breakout": false,
+    "degenerate": false,
+    "risk_model": {
+      "multiplier_k": 1.0,
+      "reason": "equilibrium_zone",
+      "min_width_gate_pct": 1.2
+    },
+    "labels": {
+      "fib_zone": "FIB F5 | Above Equilibrium",
+      "fib_position": "FIB 4/6 74% in F5",
+      "action": "SELL_LIMIT"
+    },
+    "fib_regime_label": "\ud83e\udded FIB F5 Above Equilibrium | \u26a1 D STRONG MOMENTUM"
+  },
+  "prob_bands": {
+    "schema_version": "1.2.0",
+    "method": "equal_probability_mass",
+    "band_count": 5,
+    "target_mass": 0.2,
+    "bands": [
+      {
+        "index": 0,
+        "tag": "Q0-20",
+        "price_lo": 179.337,
+        "price_hi": 186.843,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 1,
+        "tag": "Q20-40",
+        "price_lo": 186.843,
+        "price_hi": 187.963,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 2,
+        "tag": "Q40-60",
+        "price_lo": 187.963,
+        "price_hi": 188.93,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 3,
+        "tag": "Q60-80",
+        "price_lo": 188.93,
+        "price_hi": 190.044,
+        "prob_mass": 0.2
+      },
+      {
+        "index": 4,
+        "tag": "Q80-100",
+        "price_lo": 190.044,
+        "price_hi": 201.76,
+        "prob_mass": 0.2
+      }
+    ],
+    "current": {
+      "index": 3,
+      "tag": "Q60-80",
+      "price_lo": 188.93,
+      "price_hi": 190.044,
+      "position_in_band_pct": 13.6
+    },
+    "band_index": 3,
+    "shape": {
+      "mean": 188.461,
+      "median": 188.457,
+      "mode": 188.449,
+      "quantiles": {
+        "0.05": 185.358,
+        "0.25": 187.222,
+        "0.50": 188.457,
+        "0.75": 189.639,
+        "0.95": 191.698
+      },
+      "skew": 0.2016,
+      "kurtosis": 1.4898,
+      "prob_below": 63.9,
+      "prob_above": 36.1
+    },
+    "degenerate": false,
+    "mode": "static_reference"
+  },
+  "belief": {
+    "schema_version": "1.2.0",
+    "states": [
+      "UP",
+      "DOWN",
+      "RANGE"
+    ],
+    "prior": {
+      "UP": 0.2864,
+      "DOWN": 0.5069,
+      "RANGE": 0.2068
+    },
+    "prior_source": "mc_p_up",
+    "evidence": [
+      {
+        "name": "regime",
+        "value": "\u26a1 D STRONG MOMENTUM",
+        "spread": 0.278,
+        "likelihood": {
+          "UP": 0.3333,
+          "DOWN": 0.3333,
+          "RANGE": 0.3333
+        }
+      }
+    ],
+    "likelihood": {
+      "UP": 0.3333,
+      "DOWN": 0.3333,
+      "RANGE": 0.3333
+    },
+    "posterior": {
+      "UP": 0.2864,
+      "DOWN": 0.5068,
+      "RANGE": 0.2068
+    },
+    "edge": {
+      "argmax": "DOWN",
+      "value": 0.5068,
+      "spread": 0.2204
+    },
+    "threshold_tau": 0.55,
+    "verdict": "NO_EDGE",
+    "advisory": true,
+    "decay_half_life_h": 24.0,
+    "generated_utc": "2026-11-20T07:04:29.834545+00:00",
+    "expires_utc": "2026-11-21T07:04:29.834545+00:00",
+    "mode": "static_reference"
+  },
+  "date": "2026-11-20"
+}
