@@ -7,11 +7,23 @@ cd "$SCRIPT_DIR"
 
 # Schedule this script at 00:00, 00:05, and 00:10 Europe/London. Cron gives
 # up to three attempts; output-file checks below make later invocations skip
-# timeframes that already succeeded. For cron implementations supporting CRON_TZ:
-#   CRON_TZ=Europe/London
-#   0,5,10 0 * * * <repo-directory>/run_fx_mc_new.sh
+# timeframes that already succeeded. Cron is only a wake-up bell: the script
+# itself decides (via London-time guards) whether anything is due, so it is
+# safe to schedule with a plain hourly/high-frequency entry that ignores
+# CRON_TZ support (Ubuntu's cron does not support it):
+#   0,5,10 * * * * <repo-directory>/run_fx_mc.sh
 
 LONDON_NOW="$(TZ=Europe/London date '+%Y-%m-%d %H:%M:%S %Z')"
+# London-time guard: only run during the 00:00–00:10 window (London).
+# Cron may fire at any time / in any timezone; this decides whether it is
+# actually the scheduled midnight slot.
+LONDON_HM="$(TZ=Europe/London date +%H%M)"
+case "$LONDON_HM" in
+    0000|0005|0010) ;;
+    *)
+        exit 0
+        ;;
+esac
 LONDON_DAY="$(TZ=Europe/London date +%d)"
 LONDON_DOW="$(TZ=Europe/London date +%u)"  # 1=Monday ... 7=Sunday
 # fx_monte_carlo.py timestamps output filenames in UTC, so use UTC date for
